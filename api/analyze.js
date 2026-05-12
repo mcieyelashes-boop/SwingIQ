@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
   try {
     const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 1024,
       messages: [
         {
@@ -64,7 +64,12 @@ If the image doesn't clearly show a tennis swing, return score 0 with coaching e
     const result = JSON.parse(jsonMatch[0]);
     return res.status(200).json(result);
   } catch (err) {
-    console.error('Analyze error:', err);
+    console.error('Analyze error full:', JSON.stringify({
+      message: err.message,
+      status: err.status,
+      error: err.error,
+      headers: err.headers,
+    }));
     return res.status(500).json({ error: err.message || 'Analysis failed' });
   }
 }
