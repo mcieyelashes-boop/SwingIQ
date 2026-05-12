@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>SwingIQ — Tennis AI Coach</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --green: #00c46a;
+      --green-dark: #009f55;
+      --bg: #0a0a0f;
+      --card: #12121a;
+      --border: #1e1e2e;
+      --text: #e8e8f0;
+      --muted: #6b6b80;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    header {
+      padding: 20px 20px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      width: 36px; height: 36px;
+      background: var(--green);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    header span { color: var(--green); }
+
+    .tagline { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+    .container { padding: 20px; max-width: 480px; margin: 0 auto; }
+
+    /* Upload zone */
+    .upload-zone {
+      background: var(--card);
+      border: 2px dashed var(--border);
+      border-radius: 20px;
+      padding: 32px 20px;
+      text-align: center;
+      transition: border-color 0.2s;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .upload-zone.active { border-color: var(--green); }
+    .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .upload-icon { font-size: 40px; margin-bottom: 12px; }
+    .upload-zone h2 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+    .upload-zone p { font-size: 13px; color: var(--muted); }
+
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 16px 0; color: var(--muted); font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* Camera button */
+    .btn {
+      width: 100%; padding: 15px;
+      border: none; border-radius: 14px;
+      font-size: 16px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-primary { background: var(--green); color: #000; }
+    .btn-primary:active { background: var(--green-dark); transform: scale(0.98); }
+    .btn-secondary {
+      background: var(--card); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:active { opacity: 0.7; transform: scale(0.98); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Video preview */
+    #preview-section { display: none; margin-top: 20px; }
+    #video-preview {
+      width: 100%; border-radius: 16px;
+      background: #000; max-height: 300px;
+      object-fit: contain;
+    }
+
+    /* Camera stream */
+    #camera-section { display: none; margin-top: 20px; }
+    #camera-stream {
+      width: 100%; border-radius: 16px;
+      background: #000; max-height: 320px;
+      object-fit: cover; transform: scaleX(-1);
+    }
+
+    .analyze-row { display: flex; gap: 10px; margin-top: 12px; }
+    .analyze-row .btn { flex: 1; }
+
+    /* Score card */
+    #result-section { display: none; margin-top: 24px; }
+
+    .score-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .score-ring {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      border: 6px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+      position: relative;
+      font-size: 32px; font-weight: 800;
+    }
+    .score-ring.great { border-color: var(--green); color: var(--green); }
+    .score-ring.good { border-color: #f5c842; color: #f5c842; }
+    .score-ring.fair { border-color: #ff8c42; color: #ff8c42; }
+
+    .score-label { font-size: 20px; font-weight: 700; }
+    .score-sublabel { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    /* Metrics grid */
+    .metrics-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; margin-bottom: 16px;
+    }
+
+    .metric-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .metric-name { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .metric-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .metric-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+    .metric-score { font-size: 18px; font-weight: 700; margin-top: 6px; }
+
+    /* Issues */
+    .issues-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .issues-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--muted); }
+    .issue-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 14px; margin-bottom: 8px; line-height: 1.4;
+    }
+    .issue-dot { width: 6px; height: 6px; border-radius: 50%; background: #ff8c42; flex-shrink: 0; margin-top: 6px; }
+
+    /* Coaching */
+    .coaching-card {
+      background: linear-gradient(135deg, #0d1f14, #0a1510);
+      border: 1px solid #1a3025;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .coaching-label {
+      font-size: 11px; color: var(--green); text-transform: uppercase;
+      letter-spacing: 0.8px; margin-bottom: 8px; font-weight: 600;
+    }
+    .coaching-text { font-size: 15px; line-height: 1.6; }
+
+    /* Loading */
+    #loading { display: none; text-align: center; padding: 40px 20px; }
+    .spinner {
+      width: 44px; height: 44px;
+      border: 3px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 15px; color: var(--muted); }
+    .loading-sub { font-size: 12px; color: var(--muted); margin-top: 6px; opacity: 0.6; }
+
+    /* Error */
+    #error-msg {
+      display: none;
+      background: #1a0a0a; border: 1px solid #3a1515;
+      border-radius: 14px; padding: 16px;
+      color: #ff6b6b; font-size: 14px;
+      margin-top: 16px;
+    }
+
+    .try-again-row { margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">🎾</div>
+    <h1>Swing<span>IQ</span></h1>
+    <p class="tagline">AI Tennis Coach</p>
+  </header>
+
+  <div class="container">
+    <!-- Upload -->
+    <div class="upload-zone" id="upload-zone">
+      <input type="file" accept="video/*" id="file-input" />
+      <div class="upload-icon">🎬</div>
+      <h2>Upload Your Swing</h2>
+      <p>Tap to select a video from your library</p>
+    </div>
+
+    <div class="divider">or</div>
+
+    <button class="btn btn-secondary" id="camera-btn">
+      📷 Record with Camera
+    </button>
+
+    <!-- Video preview -->
+    <div id="preview-section">
+      <video id="video-preview" playsinline muted controls></video>
+      <div class="analyze-row">
+        <button class="btn btn-primary" id="analyze-btn">⚡ Analyze Swing</button>
+        <button class="btn btn-secondary" id="clear-btn" style="max-width:80px">✕</button>
+      </div>
+    </div>
+
+    <!-- Camera -->
+    <div id="camera-section">
+      <video id="camera-stream" playsinline muted autoplay></video>
+      <div class="analyze-row">
+        <button class="btn btn-primary" id="capture-btn">📸 Capture Frame</button>
+        <button class="btn btn-secondary" id="stop-camera-btn" style="max-width:80px">✕</button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading">
+      <div class="spinner"></div>
+      <p class="loading-text">Analyzing your swing...</p>
+      <p class="loading-sub">AI coach is reviewing your technique</p>
+    </div>
+
+    <!-- Error -->
+    <div id="error-msg"></div>
+
+    <!-- Results -->
+    <div id="result-section">
+      <div class="score-card">
+        <div class="score-ring" id="score-ring">
+          <span id="score-value">--</span>
+        </div>
+        <div class="score-label" id="score-label">--</div>
+        <div class="score-sublabel">Overall Swing Score</div>
+      </div>
+
+      <div class="metrics-grid" id="metrics-grid"></div>
+
+      <div class="issues-card" id="issues-card" style="display:none">
+        <div class="issues-title">⚠️ Points to Improve</div>
+        <div id="issues-list"></div>
+      </div>
+
+      <div class="coaching-card">
+        <div class="coaching-label">🤖 AI Coach Says</div>
+        <div class="coaching-text" id="coaching-text">--</div>
+      </div>
+
+      <div class="try-again-row">
+        <button class="btn btn-secondary" id="try-again-btn">↩ Analyze Another Swing</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+
+    let videoBlob = null;
+    let cameraStream = null;
+    let capturedDataUrl = null;
+
+    // File upload
+    $('file-input').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      videoBlob = file;
+      const blobUrl = URL.createObjectURL(file);
+      $('video-preview').src = blobUrl;
+      $('preview-section').style.display = 'block';
+      $('upload-zone').style.display = 'none';
+      $('camera-section').style.display = 'none';
+      hideResults();
+    });
+
+    $('upload-zone').addEventListener('dragover', e => {
+      e.preventDefault();
+      $('upload-zone').classList.add('active');
+    });
+    $('upload-zone').addEventListener('dragleave', () => $('upload-zone').classList.remove('active'));
+    $('upload-zone').addEventListener('drop', e => {
+      e.preventDefault();
+      $('upload-zone').classList.remove('active');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('video/')) {
+        $('file-input').files = e.dataTransfer.files;
+        $('file-input').dispatchEvent(new Event('change'));
+      }
+    });
+
+    // Camera
+    $('camera-btn').addEventListener('click', async () => {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        $('camera-stream').srcObject = cameraStream;
+        $('camera-section').style.display = 'block';
+        $('upload-zone').style.display = 'none';
+        $('preview-section').style.display = 'none';
+        hideResults();
+      } catch (err) {
+        showError('Camera access denied. Please allow camera in Safari settings.');
+      }
+    });
+
+    $('capture-btn').addEventListener('click', () => {
+      const video = $('camera-stream');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, -canvas.width, 0);
+      capturedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      stopCamera();
+      analyzeFrame(capturedDataUrl);
+    });
+
+    $('stop-camera-btn').addEventListener('click', () => {
+      stopCamera();
+      $('upload-zone').style.display = 'block';
+    });
+
+    function stopCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+      }
+      $('camera-section').style.display = 'none';
+    }
+
+    // Analyze uploaded video
+    $('analyze-btn').addEventListener('click', () => {
+      if (!videoBlob) return;
+      const video = $('video-preview');
+      video.currentTime = Math.min(video.duration * 0.3, 2);
+      video.addEventListener('seeked', function handler() {
+        video.removeEventListener('seeked', handler);
+        const canvas = document.createElement('canvas');
+        const maxW = 640;
+        const scale = Math.min(1, maxW / video.videoWidth);
+        canvas.width = video.videoWidth * scale;
+        canvas.height = video.videoHeight * scale;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.55);
+        analyzeFrame(dataUrl);
+      }, { once: true });
+    });
+
+    $('clear-btn').addEventListener('click', () => {
+      videoBlob = null;
+      $('video-preview').src = '';
+      $('preview-section').style.display = 'none';
+      $('upload-zone').style.display = 'block';
+      hideResults();
+      $('file-input').value = '';
+    });
+
+    $('try-again-btn').addEventListener('click', () => {
+      hideResults();
+      $('upload-zone').style.display = 'block';
+      $('preview-section').style.display = 'none';
+      videoBlob = null;
+      $('file-input').value = '';
+    });
+
+    async function analyzeFrame(dataUrl) {
+      showLoading();
+      hideResults();
+      hideError();
+
+      try {
+        const base64 = dataUrl.split(',')[1];
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64, mediaType: 'image/jpeg' })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || `Server error ${res.status}`);
+        }
+
+        const data = await res.json();
+        hideLoading();
+        showResults(data);
+      } catch (err) {
+        hideLoading();
+        showError(err.message || 'Analysis failed. Please try again.');
+      }
+    }
+
+    function showResults(data) {
+      const score = data.score || 0;
+      $('score-value').textContent = score;
+
+      const ring = $('score-ring');
+      ring.className = 'score-ring';
+      if (score >= 80) { ring.classList.add('great'); $('score-label').textContent = 'Excellent Form'; }
+      else if (score >= 60) { ring.classList.add('good'); $('score-label').textContent = 'Good Swing'; }
+      else { ring.classList.add('fair'); $('score-label').textContent = 'Needs Work'; }
+
+      const metrics = data.metrics || {};
+      const metricKeys = ['stance', 'backswing', 'impact', 'follow_through'];
+      const metricLabels = { stance: 'Stance', backswing: 'Backswing', impact: 'Impact', follow_through: 'Follow-Through' };
+      const grid = $('metrics-grid');
+      grid.innerHTML = '';
+      metricKeys.forEach(key => {
+        const val = metrics[key] || 0;
+        const color = val >= 80 ? '#00c46a' : val >= 60 ? '#f5c842' : '#ff8c42';
+        grid.innerHTML += `
+          <div class="metric-card">
+            <div class="metric-name">${metricLabels[key]}</div>
+            <div class="metric-bar"><div class="metric-fill" style="width:${val}%;background:${color}"></div></div>
+            <div class="metric-score" style="color:${color}">${val}</div>
+          </div>`;
+      });
+
+      const issues = data.issues || [];
+      if (issues.length > 0) {
+        const list = $('issues-list');
+        list.innerHTML = issues.map(i => `<div class="issue-item"><div class="issue-dot"></div><span>${i}</span></div>`).join('');
+        $('issues-card').style.display = 'block';
+      } else {
+        $('issues-card').style.display = 'none';
+      }
+
+      $('coaching-text').textContent = data.coaching || 'Great effort! Keep practicing.';
+      $('result-section').style.display = 'block';
+
+      setTimeout(() => {
+        $('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+
+    function showLoading() { $('loading').style.display = 'block'; }
+    function hideLoading() { $('loading').style.display = 'none'; }
+    function hideResults() { $('result-section').style.display = 'none'; }
+    function showError(msg) { $('error-msg').textContent = '❌ ' + msg; $('error-msg').style.display = 'block'; }
+    function hideError() { $('error-msg').style.display = 'none'; }
+  </script>
+</body>
+</html>

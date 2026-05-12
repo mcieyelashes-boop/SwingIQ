@@ -1,0 +1,8 @@
+{
+  "name": "swingiq",
+  "version": "1.0.0",
+  "description": "Tennis AI Swing Analyzer",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  }
+}
