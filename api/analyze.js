@@ -1,6 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -13,20 +13,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: mediaType, data: image }
-            },
-            {
-              type: 'text',
-              text: `You are an expert tennis coach analyzing a player's swing from a video frame.
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+    const prompt = `You are an expert tennis coach analyzing a player's swing from a video frame.
 
 Analyze the tennis swing technique visible in this image and respond ONLY with valid JSON in this exact format:
 {
@@ -48,28 +37,23 @@ Scoring guide:
 - 40-59: Beginner with several areas to improve
 - Below 40: Significant technique issues
 
-If the image doesn't clearly show a tennis swing, return score 0 with coaching explaining the image wasn't clear.`
-            }
-          ]
-        }
-      ]
-    });
+If the image doesn't clearly show a tennis swing, return score 0 with coaching explaining the image wasn't clear.`;
 
-    const text = message.content[0]?.text || '';
+    const result = await model.generateContent([
+      { inlineData: { mimeType: mediaType, data: image } },
+      prompt,
+    ]);
+
+    const text = result.response.text();
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return res.status(500).json({ error: 'Could not parse AI response' });
     }
 
-    const result = JSON.parse(jsonMatch[0]);
-    return res.status(200).json(result);
+    const data = JSON.parse(jsonMatch[0]);
+    return res.status(200).json(data);
   } catch (err) {
-    console.error('Analyze error full:', JSON.stringify({
-      message: err.message,
-      status: err.status,
-      error: err.error,
-      headers: err.headers,
-    }));
+    console.error('Analyze error:', err.message);
     return res.status(500).json({ error: err.message || 'Analysis failed' });
   }
 }
