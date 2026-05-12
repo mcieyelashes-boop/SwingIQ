@@ -1,6 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -13,9 +13,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
-    const prompt = `You are an expert tennis coach analyzing a player's swing from a video frame.
+    const response = await groq.chat.completions.create({
+      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      max_tokens: 1024,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: { url: `data:${mediaType};base64,${image}` },
+            },
+            {
+              type: 'text',
+              text: `You are an expert tennis coach analyzing a player's swing from a video frame.
 
 Analyze the tennis swing technique visible in this image and respond ONLY with valid JSON in this exact format:
 {
@@ -37,14 +48,14 @@ Scoring guide:
 - 40-59: Beginner with several areas to improve
 - Below 40: Significant technique issues
 
-If the image doesn't clearly show a tennis swing, return score 0 with coaching explaining the image wasn't clear.`;
+If the image doesn't clearly show a tennis swing, return score 0 with coaching explaining the image wasn't clear.`,
+            },
+          ],
+        },
+      ],
+    });
 
-    const result = await model.generateContent([
-      { inlineData: { mimeType: mediaType, data: image } },
-      prompt,
-    ]);
-
-    const text = result.response.text();
+    const text = response.choices[0]?.message?.content || '';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return res.status(500).json({ error: 'Could not parse AI response' });
