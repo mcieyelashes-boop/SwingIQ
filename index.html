@@ -341,8 +341,9 @@ $('file-input').addEventListener('change', e => {
 
 function loadVideo(blob) {
   videoBlob = blob;
+  const video = $('video-preview');
   const url = URL.createObjectURL(blob);
-  $('video-preview').src = url;
+
   hideEl('input-section');
   hideEl('camera-section');
   showEl('preview-section');
@@ -351,7 +352,42 @@ function loadVideo(blob) {
   resetFrameThumbs();
   $('analyze-btn').disabled = true;
 
-  $('video-preview').addEventListener('loadedmetadata', () => extractFrames(), { once: true });
+  // Listener BEFORE src to avoid race condition
+  video.addEventListener('loadedmetadata', onVideoMetaReady, { once: true });
+  video.src = url;
+  video.load(); // force iOS to start loading
+}
+
+async function onVideoMetaReady() {
+  const video = $('video-preview');
+  let duration = video.duration;
+
+  // iOS MediaRecorder bug: recorded video reports duration = Infinity
+  if (!isFinite(duration)) {
+    duration = await fixInfinityDuration(video);
+  }
+
+  if (!isFinite(duration) || duration <= 0) {
+    // Give up on frames, just enable button
+    $('analyze-btn').disabled = false;
+    return;
+  }
+
+  await extractFrames(duration);
+}
+
+function fixInfinityDuration(video) {
+  return new Promise(resolve => {
+    const onDuration = () => {
+      if (isFinite(video.duration)) {
+        video.removeEventListener('durationchange', onDuration);
+        resolve(video.duration);
+      }
+    };
+    video.addEventListener('durationchange', onDuration);
+    video.currentTime = 1e10; // seeking past end triggers correct durationchange
+    setTimeout(() => { video.removeEventListener('durationchange', onDuration); resolve(5); }, 4000);
+  });
 }
 
 // ─── Camera ───────────────────────────────────────────────────────────────────
@@ -457,10 +493,9 @@ function resetFrameThumbs() {
   });
 }
 
-async function extractFrames() {
+async function extractFrames(duration) {
   const video = $('video-preview');
-  const duration = video.duration;
-  if (!duration || isNaN(duration)) return;
+  if (!duration || !isFinite(duration)) return;
 
   // Extract at 15%, 35%, 60%, 82% of video
   const positions = [0.15, 0.35, 0.60, 0.82];
@@ -486,24 +521,32 @@ async function extractFrames() {
     }
   }
 
-  if (extractedFrames.length >= 2) {
+  // Enable button with whatever we got (even 1 frame)
+  if (extractedFrames.length >= 1) {
     $('analyze-btn').disabled = false;
   }
 }
 
 function captureFrameAt(video, time) {
   return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      video.removeEventListener('seeked', onSeeked);
+      reject(new Error('Seek timeout'));
+    }, 6000);
+
     const onSeeked = () => {
+      clearTimeout(timer);
       try {
         const canvas = document.createElement('canvas');
         const maxW = 480;
-        const scale = Math.min(1, maxW / video.videoWidth);
-        canvas.width  = Math.round(video.videoWidth  * scale);
-        canvas.height = Math.round(video.videoHeight * scale);
+        const scale = Math.min(1, maxW / (video.videoWidth || 480));
+        canvas.width  = Math.round((video.videoWidth  || 480) * scale);
+        canvas.height = Math.round((video.videoHeight || 270) * scale);
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         resolve(canvas.toDataURL('image/jpeg', 0.65).split(',')[1]);
-      } catch (e) { reject(e); }
+      } catch (e) { clearTimeout(timer); reject(e); }
     };
+
     video.addEventListener('seeked', onSeeked, { once: true });
     video.currentTime = time;
   });
