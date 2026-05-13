@@ -8,476 +8,613 @@
   <title>SwingIQ — Tennis AI Coach</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
     :root {
-      --green: #00c46a;
-      --green-dark: #009f55;
-      --bg: #0a0a0f;
-      --card: #12121a;
-      --border: #1e1e2e;
-      --text: #e8e8f0;
-      --muted: #6b6b80;
+      --green: #00c46a; --green-dark: #009f55; --bg: #0a0a0f;
+      --card: #12121a; --border: #1e1e2e; --text: #e8e8f0; --muted: #6b6b80;
     }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; min-height: 100dvh; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-      min-height: 100dvh;
-      overflow-x: hidden;
+    header { padding: 18px 20px 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+    .logo { width: 34px; height: 34px; background: var(--green); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+    header h1 { font-size: 21px; font-weight: 700; letter-spacing: -0.5px; }
+    header span { color: var(--green); }
+    .tagline { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+    .container { padding: 18px; max-width: 500px; margin: 0 auto; }
+
+    /* ── Input zone ── */
+    .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .input-card {
+      background: var(--card); border: 2px dashed var(--border); border-radius: 18px;
+      padding: 22px 12px; text-align: center; cursor: pointer;
+      transition: border-color .2s, background .2s; position: relative;
     }
+    .input-card:active { background: #16161f; }
+    .input-card.highlight { border-color: var(--green); }
+    .input-card input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .input-card .ic-icon { font-size: 30px; margin-bottom: 8px; }
+    .input-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+    .input-card p { font-size: 11px; color: var(--muted); }
 
-    header {
-      padding: 20px 20px 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid var(--border);
+    /* ── Buttons ── */
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-primary { background: var(--green); color: #000; }
+    .btn-primary:active { background: var(--green-dark); transform: scale(.98); }
+    .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:active { opacity: .7; }
+    .btn-danger { background: #c42e2e; color: #fff; }
+    .btn-danger:active { background: #a02020; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-row { display: flex; gap: 10px; margin-top: 12px; }
+    .btn-row .btn { flex: 1; }
+
+    /* ── Camera section ── */
+    #camera-section { display: none; margin-top: 16px; }
+    #camera-stream { width: 100%; border-radius: 16px; background: #000; max-height: 300px; object-fit: cover; }
+    .recording-bar { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 10px 14px; background: var(--card); border-radius: 12px; border: 1px solid var(--border); }
+    .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: #c42e2e; animation: blink 1s infinite; flex-shrink: 0; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .rec-dot.idle { background: var(--muted); animation: none; }
+    .rec-timer { font-size: 13px; font-weight: 600; flex: 1; }
+    .rec-hint { font-size: 11px; color: var(--muted); }
+
+    /* Countdown overlay */
+    #countdown-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7);
+      z-index: 100; align-items: center; justify-content: center; flex-direction: column;
     }
+    #countdown-overlay.show { display: flex; }
+    #countdown-num { font-size: 96px; font-weight: 800; color: var(--green); line-height: 1; }
+    #countdown-label { font-size: 18px; color: var(--text); margin-top: 8px; }
 
-    .logo {
-      width: 36px; height: 36px;
-      background: var(--green);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
+    /* ── Video preview ── */
+    #preview-section { display: none; margin-top: 16px; }
+    #video-preview { width: 100%; border-radius: 14px; background: #000; max-height: 220px; object-fit: contain; }
+    .frames-row { display: flex; gap: 6px; margin-top: 10px; }
+    .frame-thumb {
+      flex: 1; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden;
+      background: var(--border); position: relative;
+    }
+    .frame-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .frame-thumb .ft-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,.65); font-size: 9px; font-weight: 600;
+      text-align: center; padding: 3px; color: var(--text);
+    }
+    .frame-thumb .ft-loading {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
       font-size: 18px;
     }
 
-    header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-    header span { color: var(--green); }
-
-    .tagline { font-size: 11px; color: var(--muted); margin-left: auto; }
-
-    .container { padding: 20px; max-width: 480px; margin: 0 auto; }
-
-    /* Upload zone */
-    .upload-zone {
-      background: var(--card);
-      border: 2px dashed var(--border);
-      border-radius: 20px;
-      padding: 32px 20px;
-      text-align: center;
-      transition: border-color 0.2s;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-    }
-    .upload-zone.active { border-color: var(--green); }
-    .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-    .upload-icon { font-size: 40px; margin-bottom: 12px; }
-    .upload-zone h2 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
-    .upload-zone p { font-size: 13px; color: var(--muted); }
-
-    .divider {
-      display: flex; align-items: center; gap: 12px;
-      margin: 16px 0; color: var(--muted); font-size: 12px;
-    }
-    .divider::before, .divider::after {
-      content: ''; flex: 1; height: 1px; background: var(--border);
-    }
-
-    /* Camera button */
-    .btn {
-      width: 100%; padding: 15px;
-      border: none; border-radius: 14px;
-      font-size: 16px; font-weight: 600;
-      cursor: pointer; transition: all 0.15s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
-    .btn-primary { background: var(--green); color: #000; }
-    .btn-primary:active { background: var(--green-dark); transform: scale(0.98); }
-    .btn-secondary {
-      background: var(--card); color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:active { opacity: 0.7; transform: scale(0.98); }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    /* Video preview */
-    #preview-section { display: none; margin-top: 20px; }
-    #video-preview {
-      width: 100%; border-radius: 16px;
-      background: #000; max-height: 300px;
-      object-fit: contain;
-    }
-
-    /* Camera stream */
-    #camera-section { display: none; margin-top: 20px; }
-    #camera-stream {
-      width: 100%; border-radius: 16px;
-      background: #000; max-height: 320px;
-      object-fit: cover; transform: scaleX(-1);
-    }
-
-    .analyze-row { display: flex; gap: 10px; margin-top: 12px; }
-    .analyze-row .btn { flex: 1; }
-
-    /* Score card */
-    #result-section { display: none; margin-top: 24px; }
-
-    .score-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 24px;
-      text-align: center;
-      margin-bottom: 16px;
-    }
-
-    .score-ring {
-      width: 100px; height: 100px;
-      border-radius: 50%;
-      border: 6px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 12px;
-      position: relative;
-      font-size: 32px; font-weight: 800;
-    }
-    .score-ring.great { border-color: var(--green); color: var(--green); }
-    .score-ring.good { border-color: #f5c842; color: #f5c842; }
-    .score-ring.fair { border-color: #ff8c42; color: #ff8c42; }
-
-    .score-label { font-size: 20px; font-weight: 700; }
-    .score-sublabel { font-size: 13px; color: var(--muted); margin-top: 4px; }
-
-    /* Metrics grid */
-    .metrics-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 10px; margin-bottom: 16px;
-    }
-
-    .metric-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-    }
-    .metric-name { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-    .metric-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-    .metric-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
-    .metric-score { font-size: 18px; font-weight: 700; margin-top: 6px; }
-
-    /* Issues */
-    .issues-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-    .issues-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--muted); }
-    .issue-item {
-      display: flex; align-items: flex-start; gap: 8px;
-      font-size: 14px; margin-bottom: 8px; line-height: 1.4;
-    }
-    .issue-dot { width: 6px; height: 6px; border-radius: 50%; background: #ff8c42; flex-shrink: 0; margin-top: 6px; }
-
-    /* Coaching */
-    .coaching-card {
-      background: linear-gradient(135deg, #0d1f14, #0a1510);
-      border: 1px solid #1a3025;
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 16px;
-    }
-    .coaching-label {
-      font-size: 11px; color: var(--green); text-transform: uppercase;
-      letter-spacing: 0.8px; margin-bottom: 8px; font-weight: 600;
-    }
-    .coaching-text { font-size: 15px; line-height: 1.6; }
-
-    /* Loading */
+    /* ── Loading ── */
     #loading { display: none; text-align: center; padding: 40px 20px; }
-    .spinner {
-      width: 44px; height: 44px;
-      border: 3px solid var(--border);
-      border-top-color: var(--green);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
-    }
+    .spinner { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 14px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading-text { font-size: 15px; color: var(--muted); }
-    .loading-sub { font-size: 12px; color: var(--muted); margin-top: 6px; opacity: 0.6; }
+    .loading-sub { font-size: 12px; color: var(--muted); margin-top: 5px; opacity: .6; }
 
-    /* Error */
-    #error-msg {
-      display: none;
-      background: #1a0a0a; border: 1px solid #3a1515;
-      border-radius: 14px; padding: 16px;
-      color: #ff6b6b; font-size: 14px;
-      margin-top: 16px;
-    }
+    /* ── Error ── */
+    #error-msg { display: none; background: #1a0a0a; border: 1px solid #3a1515; border-radius: 14px; padding: 14px; color: #ff6b6b; font-size: 14px; margin-top: 14px; }
 
-    .try-again-row { margin-top: 16px; }
+    /* ── Results ── */
+    #result-section { display: none; margin-top: 20px; }
+
+    .overall-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 22px; text-align: center; margin-bottom: 16px; }
+    .score-ring { width: 88px; height: 88px; border-radius: 50%; border: 6px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 28px; font-weight: 800; }
+    .score-ring.great { border-color: var(--green); color: var(--green); }
+    .score-ring.good  { border-color: #f5c842; color: #f5c842; }
+    .score-ring.fair  { border-color: #ff8c42; color: #ff8c42; }
+    .overall-label { font-size: 18px; font-weight: 700; }
+    .overall-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    /* Phase cards */
+    .phases-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; }
+
+    .phase-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; margin-bottom: 12px; }
+    .phase-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .phase-name { font-size: 15px; font-weight: 700; }
+    .phase-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .phase-badge.great { background: rgba(0,196,106,.15); color: var(--green); }
+    .phase-badge.good  { background: rgba(245,200,66,.15); color: #f5c842; }
+    .phase-badge.fair  { background: rgba(255,140,66,.15); color: #ff8c42; }
+
+    /* Comparison row */
+    .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .cmp-box { border-radius: 10px; overflow: hidden; background: #0d0d14; }
+    .cmp-label { font-size: 10px; font-weight: 600; text-align: center; padding: 5px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; border-bottom: 1px solid var(--border); }
+    .cmp-frame img { width: 100%; display: block; aspect-ratio: 4/3; object-fit: cover; }
+    .cmp-svg { padding: 6px; display: flex; align-items: center; justify-content: center; aspect-ratio: 4/3; }
+    .cmp-svg svg { width: 100%; height: 100%; }
+
+    /* Issues + tip */
+    .phase-issues { margin-bottom: 8px; }
+    .phase-issue { display: flex; align-items: flex-start; gap: 7px; font-size: 13px; color: #ff9f6b; margin-bottom: 5px; line-height: 1.4; }
+    .phase-issue-dot { width: 5px; height: 5px; border-radius: 50%; background: #ff8c42; flex-shrink: 0; margin-top: 5px; }
+    .phase-good { font-size: 13px; color: var(--green); margin-bottom: 5px; }
+
+    .phase-tip { background: #0d1a12; border: 1px solid #1a3020; border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.5; color: #b8f0d0; }
+    .phase-tip-label { font-size: 10px; color: var(--green); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; }
+
+    /* Coaching */
+    .coaching-card { background: linear-gradient(135deg,#0d1f14,#0a1510); border: 1px solid #1a3025; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+    .coaching-lbl { font-size: 11px; color: var(--green); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 7px; font-weight: 600; }
+    .coaching-text { font-size: 14px; line-height: 1.6; }
+
+    .try-again { margin-top: 4px; }
   </style>
 </head>
 <body>
-  <header>
-    <div class="logo">🎾</div>
-    <h1>Swing<span>IQ</span></h1>
-    <p class="tagline">AI Tennis Coach</p>
-  </header>
 
-  <div class="container">
-    <!-- Upload -->
-    <div class="upload-zone" id="upload-zone">
-      <input type="file" accept="video/*" id="file-input" />
-      <div class="upload-icon">🎬</div>
-      <h2>Upload Your Swing</h2>
-      <p>Tap to select a video from your library</p>
-    </div>
+<header>
+  <div class="logo">🎾</div>
+  <h1>Swing<span>IQ</span></h1>
+  <p class="tagline">AI Tennis Coach</p>
+</header>
 
-    <div class="divider">or</div>
+<!-- Countdown overlay -->
+<div id="countdown-overlay">
+  <div id="countdown-num">3</div>
+  <div id="countdown-label">Get ready…</div>
+</div>
 
-    <button class="btn btn-secondary" id="camera-btn">
-      📷 Record with Camera
-    </button>
+<div class="container">
 
-    <!-- Video preview -->
-    <div id="preview-section">
-      <video id="video-preview" playsinline muted controls></video>
-      <div class="analyze-row">
-        <button class="btn btn-primary" id="analyze-btn">⚡ Analyze Swing</button>
-        <button class="btn btn-secondary" id="clear-btn" style="max-width:80px">✕</button>
+  <!-- Input options -->
+  <div id="input-section">
+    <div class="input-grid">
+      <div class="input-card" id="upload-card">
+        <input type="file" accept="video/*" id="file-input" />
+        <div class="ic-icon">🎬</div>
+        <h3>Upload Video</h3>
+        <p>From your library</p>
+      </div>
+      <div class="input-card" id="record-card" onclick="startCamera()">
+        <div class="ic-icon">🔴</div>
+        <h3>Record Swing</h3>
+        <p>Use camera</p>
       </div>
     </div>
+    <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px;">Best results: 3–5 sec full swing video, good lighting</p>
+  </div>
 
-    <!-- Camera -->
-    <div id="camera-section">
-      <video id="camera-stream" playsinline muted autoplay></video>
-      <div class="analyze-row">
-        <button class="btn btn-primary" id="capture-btn">📸 Capture Frame</button>
-        <button class="btn btn-secondary" id="stop-camera-btn" style="max-width:80px">✕</button>
-      </div>
+  <!-- Camera section -->
+  <div id="camera-section">
+    <video id="camera-stream" playsinline muted autoplay></video>
+    <div class="recording-bar">
+      <div class="rec-dot idle" id="rec-dot"></div>
+      <span class="rec-timer" id="rec-timer">Ready to record</span>
+      <span class="rec-hint" id="rec-hint">Tap Record when ready</span>
     </div>
-
-    <!-- Loading -->
-    <div id="loading">
-      <div class="spinner"></div>
-      <p class="loading-text">Analyzing your swing...</p>
-      <p class="loading-sub">AI coach is reviewing your technique</p>
-    </div>
-
-    <!-- Error -->
-    <div id="error-msg"></div>
-
-    <!-- Results -->
-    <div id="result-section">
-      <div class="score-card">
-        <div class="score-ring" id="score-ring">
-          <span id="score-value">--</span>
-        </div>
-        <div class="score-label" id="score-label">--</div>
-        <div class="score-sublabel">Overall Swing Score</div>
-      </div>
-
-      <div class="metrics-grid" id="metrics-grid"></div>
-
-      <div class="issues-card" id="issues-card" style="display:none">
-        <div class="issues-title">⚠️ Points to Improve</div>
-        <div id="issues-list"></div>
-      </div>
-
-      <div class="coaching-card">
-        <div class="coaching-label">🤖 AI Coach Says</div>
-        <div class="coaching-text" id="coaching-text">--</div>
-      </div>
-
-      <div class="try-again-row">
-        <button class="btn btn-secondary" id="try-again-btn">↩ Analyze Another Swing</button>
-      </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="rec-start-btn" onclick="startRecording()">⏺ Record (5s)</button>
+      <button class="btn btn-danger" id="rec-stop-btn" onclick="stopRecording()" style="display:none">⏹ Stop</button>
+      <button class="btn btn-secondary" style="max-width:60px" onclick="closeCamera()">✕</button>
     </div>
   </div>
 
-  <script>
-    const $ = id => document.getElementById(id);
+  <!-- Video preview + frame thumbnails -->
+  <div id="preview-section">
+    <video id="video-preview" playsinline muted controls></video>
+    <div class="frames-row" id="frames-row">
+      <div class="frame-thumb" id="ft0"><div class="ft-loading">⏳</div><div class="ft-label">Stance</div></div>
+      <div class="frame-thumb" id="ft1"><div class="ft-loading">⏳</div><div class="ft-label">Backswing</div></div>
+      <div class="frame-thumb" id="ft2"><div class="ft-loading">⏳</div><div class="ft-label">Contact</div></div>
+      <div class="frame-thumb" id="ft3"><div class="ft-loading">⏳</div><div class="ft-label">Follow</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="analyze-btn" onclick="analyzeSwing()" disabled>⚡ Analyze Swing</button>
+      <button class="btn btn-secondary" style="max-width:60px" onclick="resetAll()">✕</button>
+    </div>
+  </div>
 
-    let videoBlob = null;
-    let cameraStream = null;
-    let capturedDataUrl = null;
+  <!-- Loading -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <p class="loading-text">Analyzing your swing…</p>
+    <p class="loading-sub">Reviewing all 4 phases</p>
+  </div>
 
-    // File upload
-    $('file-input').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      videoBlob = file;
-      const blobUrl = URL.createObjectURL(file);
-      $('video-preview').src = blobUrl;
-      $('preview-section').style.display = 'block';
-      $('upload-zone').style.display = 'none';
-      $('camera-section').style.display = 'none';
-      hideResults();
+  <!-- Error -->
+  <div id="error-msg"></div>
+
+  <!-- Results -->
+  <div id="result-section">
+    <!-- Overall -->
+    <div class="overall-card">
+      <div class="score-ring" id="score-ring"><span id="score-value">--</span></div>
+      <div class="overall-label" id="overall-label">--</div>
+      <div class="overall-sub">Overall Swing Score</div>
+    </div>
+
+    <!-- Phase cards injected here -->
+    <div class="phases-title">Phase-by-Phase Breakdown</div>
+    <div id="phases-container"></div>
+
+    <!-- Coaching -->
+    <div class="coaching-card">
+      <div class="coaching-lbl">🤖 AI Coach Summary</div>
+      <div class="coaching-text" id="coaching-text">--</div>
+    </div>
+
+    <div class="try-again">
+      <button class="btn btn-secondary" onclick="resetAll()">↩ Analyze Another Swing</button>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ─── Reference SVGs for each phase ───────────────────────────────────────────
+const REF_SVGS = {
+  'Stance': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
+    <style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round} .a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2} .l{stroke:#333;stroke-width:1}</style>
+    <!-- ground --><line class="l" x1="10" y1="142" x2="90" y2="142"/>
+    <!-- feet arrows: shoulder width --><line class="a" x1="28" y1="145" x2="72" y2="145"/>
+    <text x="50" y="149" fill="#4af" font-size="6" text-anchor="middle">shoulder width</text>
+    <!-- legs --><line class="s" x1="50" y1="82" x2="32" y2="115"/><line class="s" x1="32" y1="115" x2="28" y2="140"/>
+    <line class="s" x1="50" y1="82" x2="68" y2="115"/><line class="s" x1="68" y1="115" x2="72" y2="140"/>
+    <!-- knee bend indicator --><path class="a" d="M22,110 Q18,115 22,120"/><text x="14" y="115" fill="#4af" font-size="5.5">bent</text>
+    <!-- body --><line class="s" x1="50" y1="35" x2="50" y2="82"/>
+    <!-- head --><circle cx="50" cy="25" r="10" class="s"/>
+    <!-- left arm --><line class="s" x1="50" y1="50" x2="34" y2="65"/>
+    <!-- right arm holding racket --><line class="s" x1="50" y1="50" x2="64" y2="62"/>
+    <!-- racket (in front, loose) -->
+    <ellipse cx="68" cy="58" rx="6" ry="8" class="s" transform="rotate(-20,68,58)"/>
+    <line class="s" x1="65" y1="64" x2="61" y2="72"/>
+    <!-- weight center arrow --><path class="a" d="M50,85 L50,95"/><polygon points="50,98 47,93 53,93" fill="#4af"/>
+    <text x="54" y="94" fill="#4af" font-size="5.5">centered</text>
+  </svg>`,
+
+  'Backswing': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
+    <style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round} .a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2} .l{stroke:#333;stroke-width:1}</style>
+    <line class="l" x1="10" y1="142" x2="90" y2="142"/>
+    <!-- legs --><line class="s" x1="46" y1="82" x2="30" y2="115"/><line class="s" x1="30" y1="115" x2="28" y2="140"/>
+    <line class="s" x1="46" y1="82" x2="60" y2="112"/><line class="s" x1="60" y1="112" x2="62" y2="140"/>
+    <!-- weight on back foot --><path class="a" d="M22,125 L28,140"/><text x="10" y="132" fill="#4af" font-size="5.5">weight back</text>
+    <!-- body rotated --><path class="s" d="M46,35 Q52,58 46,82"/>
+    <!-- head --><circle cx="46" cy="25" r="10" class="s"/>
+    <!-- left arm (guide) forward --><line class="s" x1="46" y1="50" x2="30" y2="58"/>
+    <!-- right arm: racket high back --><line class="s" x1="46" y1="50" x2="72" y2="32"/>
+    <!-- racket high --><ellipse cx="76" cy="26" rx="7" ry="9" class="s" transform="rotate(30,76,26)"/>
+    <line class="s" x1="72" y1="32" x2="69" y2="40"/>
+    <!-- arc showing racket path --><path class="a" d="M68,58 Q82,40 76,24"/><polygon points="76,21 73,26 79,26" fill="#4af"/>
+    <text x="82" y="38" fill="#4af" font-size="5.5">high</text>
+    <!-- shoulder rotation --><path class="a" d="M36,42 Q46,35 56,42"/><text x="36" y="36" fill="#4af" font-size="5.5">rotate</text>
+  </svg>`,
+
+  'Contact Point': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
+    <style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round} .a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2} .l{stroke:#333;stroke-width:1}</style>
+    <line class="l" x1="10" y1="142" x2="90" y2="142"/>
+    <!-- legs --><line class="s" x1="46" y1="82" x2="32" y2="115"/><line class="s" x1="32" y1="115" x2="30" y2="140"/>
+    <line class="s" x1="46" y1="82" x2="62" y2="112"/><line class="s" x1="62" y1="112" x2="66" y2="140"/>
+    <!-- weight forward --><path class="a" d="M60,120 L66,140"/><text x="68" y="132" fill="#4af" font-size="5.5">weight fwd</text>
+    <!-- body --><line class="s" x1="46" y1="35" x2="46" y2="82"/>
+    <!-- head --><circle cx="46" cy="25" r="10" class="s"/>
+    <!-- left arm (balance) --><line class="s" x1="46" y1="50" x2="28" y2="62"/>
+    <!-- right arm fully extended --><line class="s" x1="46" y1="50" x2="76" y2="62"/>
+    <!-- racket face flat at contact --><rect x="76" y="54" width="10" height="15" class="s" rx="2"/>
+    <line class="s" x1="81" y1="69" x2="79" y2="78"/>
+    <!-- ball at contact --><circle cx="82" cy="58" r="4" stroke="#f5c842" stroke-width="1.5" fill="rgba(245,200,66,.15)"/>
+    <!-- contact point zone --><path class="a" d="M74,50 Q86,50 86,68"/><text x="74" y="46" fill="#4af" font-size="5.5">in front</text>
+    <!-- arm extension arrow --><path class="a" d="M58,56 L73,60"/>
+    <text x="54" y="52" fill="#4af" font-size="5.5">extend!</text>
+  </svg>`,
+
+  'Follow-Through': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
+    <style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round} .a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2} .l{stroke:#333;stroke-width:1}</style>
+    <line class="l" x1="10" y1="142" x2="90" y2="142"/>
+    <!-- legs: weight fully on front --><line class="s" x1="46" y1="82" x2="34" y2="115"/><line class="s" x1="34" y1="115" x2="34" y2="140"/>
+    <line class="s" x1="46" y1="82" x2="60" y2="112"/><line class="s" x1="60" y1="112" x2="64" y2="140"/>
+    <!-- body rotated through --><path class="s" d="M46,35 Q40,58 46,82"/>
+    <!-- head facing forward --><circle cx="44" cy="25" r="10" class="s"/>
+    <!-- left arm wraps --><line class="s" x1="46" y1="50" x2="62" y2="56"/>
+    <!-- right arm: racket over left shoulder --><line class="s" x1="46" y1="50" x2="28" y2="30"/>
+    <!-- racket over shoulder --><ellipse cx="24" cy="24" rx="7" ry="9" class="s" transform="rotate(-40,24,24)"/>
+    <line class="s" x1="28" y1="30" x2="30" y2="38"/>
+    <!-- follow-through arc --><path class="a" d="M72,60 Q65,30 26,22"/><polygon points="23,21 26,27 29,21" fill="#4af"/>
+    <text x="52" y="28" fill="#4af" font-size="5.5">over shoulder</text>
+    <!-- full rotation --><path class="a" d="M54,72 Q62,68 62,82"/><text x="64" y="76" fill="#4af" font-size="5.5">rotate</text>
+  </svg>`,
+};
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let videoBlob = null;
+let cameraStream = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+let extractedFrames = [];
+let recordTimer = null;
+let recSeconds = 0;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+function showEl(id)  { $(id).style.display = 'block'; }
+function hideEl(id)  { $(id).style.display = 'none'; }
+
+// ─── File upload ──────────────────────────────────────────────────────────────
+$('file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  loadVideo(file);
+});
+
+function loadVideo(blob) {
+  videoBlob = blob;
+  const url = URL.createObjectURL(blob);
+  $('video-preview').src = url;
+  hideEl('input-section');
+  hideEl('camera-section');
+  showEl('preview-section');
+  hideResults();
+  hideError();
+  resetFrameThumbs();
+  $('analyze-btn').disabled = true;
+
+  $('video-preview').addEventListener('loadedmetadata', () => extractFrames(), { once: true });
+}
+
+// ─── Camera ───────────────────────────────────────────────────────────────────
+async function startCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false,
     });
+    $('camera-stream').srcObject = cameraStream;
+    hideEl('input-section');
+    showEl('camera-section');
+    hideResults();
+    hideError();
+  } catch (err) {
+    showError('Camera access denied. Please allow camera in settings.');
+  }
+}
 
-    $('upload-zone').addEventListener('dragover', e => {
-      e.preventDefault();
-      $('upload-zone').classList.add('active');
-    });
-    $('upload-zone').addEventListener('dragleave', () => $('upload-zone').classList.remove('active'));
-    $('upload-zone').addEventListener('drop', e => {
-      e.preventDefault();
-      $('upload-zone').classList.remove('active');
-      const file = e.dataTransfer.files[0];
-      if (file && file.type.startsWith('video/')) {
-        $('file-input').files = e.dataTransfer.files;
-        $('file-input').dispatchEvent(new Event('change'));
-      }
-    });
+function closeCamera() {
+  stopStream();
+  hideEl('camera-section');
+  showEl('input-section');
+}
 
-    // Camera
-    $('camera-btn').addEventListener('click', async () => {
-      try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: false
-        });
-        $('camera-stream').srcObject = cameraStream;
-        $('camera-section').style.display = 'block';
-        $('upload-zone').style.display = 'none';
-        $('preview-section').style.display = 'none';
-        hideResults();
-      } catch (err) {
-        showError('Camera access denied. Please allow camera in Safari settings.');
-      }
-    });
+function stopStream() {
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+}
 
-    $('capture-btn').addEventListener('click', () => {
-      const video = $('camera-stream');
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.scale(-1, 1);
-      ctx.drawImage(video, -canvas.width, 0);
-      capturedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-      stopCamera();
-      analyzeFrame(capturedDataUrl);
-    });
+// ─── Recording ────────────────────────────────────────────────────────────────
+function startRecording() {
+  // Countdown 3-2-1 then record
+  let count = 3;
+  $('countdown-num').textContent = count;
+  $('countdown-overlay').classList.add('show');
+  $('countdown-label').textContent = 'Get ready…';
 
-    $('stop-camera-btn').addEventListener('click', () => {
-      stopCamera();
-      $('upload-zone').style.display = 'block';
-    });
-
-    function stopCamera() {
-      if (cameraStream) {
-        cameraStream.getTracks().forEach(t => t.stop());
-        cameraStream = null;
-      }
-      $('camera-section').style.display = 'none';
+  const tick = setInterval(() => {
+    count--;
+    if (count > 0) {
+      $('countdown-num').textContent = count;
+    } else {
+      clearInterval(tick);
+      $('countdown-overlay').classList.remove('show');
+      doRecord();
     }
+  }, 1000);
+}
 
-    // Analyze uploaded video
-    $('analyze-btn').addEventListener('click', () => {
-      if (!videoBlob) return;
-      const video = $('video-preview');
-      video.currentTime = Math.min(video.duration * 0.3, 2);
-      video.addEventListener('seeked', function handler() {
-        video.removeEventListener('seeked', handler);
+function doRecord() {
+  recordedChunks = [];
+  const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4'
+    : MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9'
+    : 'video/webm';
+
+  mediaRecorder = new MediaRecorder(cameraStream, { mimeType });
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(recordedChunks, { type: mimeType });
+    stopStream();
+    hideEl('camera-section');
+    loadVideo(blob);
+  };
+
+  mediaRecorder.start(100);
+
+  // UI
+  $('rec-dot').classList.remove('idle');
+  $('rec-start-btn').style.display = 'none';
+  $('rec-stop-btn').style.display = 'flex';
+  recSeconds = 0;
+  updateRecTimer();
+  recordTimer = setInterval(() => {
+    recSeconds++;
+    updateRecTimer();
+    if (recSeconds >= 5) stopRecording();
+  }, 1000);
+}
+
+function updateRecTimer() {
+  $('rec-timer').textContent = `Recording… ${recSeconds}s / 5s`;
+  $('rec-hint').textContent = 'Tap Stop when done';
+}
+
+function stopRecording() {
+  clearInterval(recordTimer);
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  $('rec-dot').classList.add('idle');
+  $('rec-timer').textContent = 'Processing…';
+  $('rec-start-btn').style.display = 'flex';
+  $('rec-stop-btn').style.display = 'none';
+}
+
+// ─── Frame extraction ─────────────────────────────────────────────────────────
+function resetFrameThumbs() {
+  extractedFrames = [];
+  ['ft0','ft1','ft2','ft3'].forEach(id => {
+    $(id).innerHTML = `<div class="ft-loading">⏳</div><div class="ft-label">${$(id).querySelector('.ft-label')?.textContent || ''}</div>`;
+  });
+  const labels = ['Stance','Backswing','Contact','Follow'];
+  ['ft0','ft1','ft2','ft3'].forEach((id,i) => {
+    $(id).querySelector('.ft-label').textContent = labels[i];
+  });
+}
+
+async function extractFrames() {
+  const video = $('video-preview');
+  const duration = video.duration;
+  if (!duration || isNaN(duration)) return;
+
+  // Extract at 15%, 35%, 60%, 82% of video
+  const positions = [0.15, 0.35, 0.60, 0.82];
+  const thumbIds  = ['ft0','ft1','ft2','ft3'];
+  extractedFrames = [];
+
+  for (let i = 0; i < 4; i++) {
+    try {
+      const frame = await captureFrameAt(video, duration * positions[i]);
+      extractedFrames.push(frame);
+      // Show thumbnail
+      const thumb = $(thumbIds[i]);
+      const img = document.createElement('img');
+      img.src = 'data:image/jpeg;base64,' + frame;
+      const lbl = thumb.querySelector('.ft-label').textContent;
+      thumb.innerHTML = '';
+      thumb.appendChild(img);
+      const lDiv = document.createElement('div');
+      lDiv.className = 'ft-label'; lDiv.textContent = lbl;
+      thumb.appendChild(lDiv);
+    } catch (e) {
+      console.warn('Frame extract failed at position', i, e);
+    }
+  }
+
+  if (extractedFrames.length >= 2) {
+    $('analyze-btn').disabled = false;
+  }
+}
+
+function captureFrameAt(video, time) {
+  return new Promise((resolve, reject) => {
+    const onSeeked = () => {
+      try {
         const canvas = document.createElement('canvas');
-        const maxW = 640;
+        const maxW = 480;
         const scale = Math.min(1, maxW / video.videoWidth);
-        canvas.width = video.videoWidth * scale;
-        canvas.height = video.videoHeight * scale;
+        canvas.width  = Math.round(video.videoWidth  * scale);
+        canvas.height = Math.round(video.videoHeight * scale);
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.55);
-        analyzeFrame(dataUrl);
-      }, { once: true });
+        resolve(canvas.toDataURL('image/jpeg', 0.65).split(',')[1]);
+      } catch (e) { reject(e); }
+    };
+    video.addEventListener('seeked', onSeeked, { once: true });
+    video.currentTime = time;
+  });
+}
+
+// ─── Analyze ──────────────────────────────────────────────────────────────────
+async function analyzeSwing() {
+  if (!extractedFrames.length) return;
+  showLoading();
+  hideResults();
+  hideError();
+
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ frames: extractedFrames, mediaType: 'image/jpeg' }),
     });
-
-    $('clear-btn').addEventListener('click', () => {
-      videoBlob = null;
-      $('video-preview').src = '';
-      $('preview-section').style.display = 'none';
-      $('upload-zone').style.display = 'block';
-      hideResults();
-      $('file-input').value = '';
-    });
-
-    $('try-again-btn').addEventListener('click', () => {
-      hideResults();
-      $('upload-zone').style.display = 'block';
-      $('preview-section').style.display = 'none';
-      videoBlob = null;
-      $('file-input').value = '';
-    });
-
-    async function analyzeFrame(dataUrl) {
-      showLoading();
-      hideResults();
-      hideError();
-
-      try {
-        const base64 = dataUrl.split(',')[1];
-        const res = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64, mediaType: 'image/jpeg' })
-        });
-
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || `Server error ${res.status}`);
-        }
-
-        const data = await res.json();
-        hideLoading();
-        showResults(data);
-      } catch (err) {
-        hideLoading();
-        showError(err.message || 'Analysis failed. Please try again.');
-      }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Server error ${res.status}`);
     }
+    const data = await res.json();
+    hideLoading();
+    showResults(data);
+  } catch (err) {
+    hideLoading();
+    showError(err.message || 'Analysis failed. Please try again.');
+  }
+}
 
-    function showResults(data) {
-      const score = data.score || 0;
-      $('score-value').textContent = score;
+// ─── Show results ─────────────────────────────────────────────────────────────
+function showResults(data) {
+  const score = data.overall_score ?? data.score ?? 0;
+  $('score-value').textContent = score;
+  const ring = $('score-ring');
+  ring.className = 'score-ring';
+  let label = 'Needs Work';
+  if (score >= 80) { ring.classList.add('great'); label = 'Excellent Form'; }
+  else if (score >= 60) { ring.classList.add('good'); label = 'Good Swing'; }
+  else { ring.classList.add('fair'); }
+  $('overall-label').textContent = label;
 
-      const ring = $('score-ring');
-      ring.className = 'score-ring';
-      if (score >= 80) { ring.classList.add('great'); $('score-label').textContent = 'Excellent Form'; }
-      else if (score >= 60) { ring.classList.add('good'); $('score-label').textContent = 'Good Swing'; }
-      else { ring.classList.add('fair'); $('score-label').textContent = 'Needs Work'; }
+  // Phase cards
+  const phases = data.phases || [];
+  const container = $('phases-container');
+  container.innerHTML = '';
 
-      const metrics = data.metrics || {};
-      const metricKeys = ['stance', 'backswing', 'impact', 'follow_through'];
-      const metricLabels = { stance: 'Stance', backswing: 'Backswing', impact: 'Impact', follow_through: 'Follow-Through' };
-      const grid = $('metrics-grid');
-      grid.innerHTML = '';
-      metricKeys.forEach(key => {
-        const val = metrics[key] || 0;
-        const color = val >= 80 ? '#00c46a' : val >= 60 ? '#f5c842' : '#ff8c42';
-        grid.innerHTML += `
-          <div class="metric-card">
-            <div class="metric-name">${metricLabels[key]}</div>
-            <div class="metric-bar"><div class="metric-fill" style="width:${val}%;background:${color}"></div></div>
-            <div class="metric-score" style="color:${color}">${val}</div>
-          </div>`;
-      });
+  const phaseOrder = ['Stance','Backswing','Contact Point','Follow-Through'];
 
-      const issues = data.issues || [];
-      if (issues.length > 0) {
-        const list = $('issues-list');
-        list.innerHTML = issues.map(i => `<div class="issue-item"><div class="issue-dot"></div><span>${i}</span></div>`).join('');
-        $('issues-card').style.display = 'block';
-      } else {
-        $('issues-card').style.display = 'none';
-      }
+  phaseOrder.forEach((phaseName, idx) => {
+    const phase = phases.find(p => p.name === phaseName) || phases[idx] || {};
+    const s = phase.score || 0;
+    const badgeCls = s >= 80 ? 'great' : s >= 60 ? 'good' : 'fair';
+    const frame = extractedFrames[idx];
+    const refSvg = REF_SVGS[phaseName] || '';
 
-      $('coaching-text').textContent = data.coaching || 'Great effort! Keep practicing.';
-      $('result-section').style.display = 'block';
+    const issues = phase.issues || [];
+    const issuesHtml = issues.length
+      ? issues.map(i => `<div class="phase-issue"><div class="phase-issue-dot"></div>${i}</div>`).join('')
+      : `<div class="phase-good">✓ Looks good</div>`;
 
-      setTimeout(() => {
-        $('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }
+    const card = document.createElement('div');
+    card.className = 'phase-card';
+    card.innerHTML = `
+      <div class="phase-header">
+        <div class="phase-name">${phaseIcons[phaseName] || ''} ${phaseName}</div>
+        <div class="phase-badge ${badgeCls}">${s}/100</div>
+      </div>
+      <div class="comparison">
+        <div class="cmp-box">
+          <div class="cmp-label">Your Form</div>
+          <div class="cmp-frame">${frame ? `<img src="data:image/jpeg;base64,${frame}" alt="${phaseName}"/>` : '<div style="height:80px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;">No frame</div>'}</div>
+        </div>
+        <div class="cmp-box">
+          <div class="cmp-label">Ideal Form</div>
+          <div class="cmp-svg">${refSvg}</div>
+        </div>
+      </div>
+      <div class="phase-issues">${issuesHtml}</div>
+      ${phase.tip ? `<div class="phase-tip"><div class="phase-tip-label">💡 Fix</div>${phase.tip}</div>` : ''}
+    `;
+    container.appendChild(card);
+  });
 
-    function showLoading() { $('loading').style.display = 'block'; }
-    function hideLoading() { $('loading').style.display = 'none'; }
-    function hideResults() { $('result-section').style.display = 'none'; }
-    function showError(msg) { $('error-msg').textContent = '❌ ' + msg; $('error-msg').style.display = 'block'; }
-    function hideError() { $('error-msg').style.display = 'none'; }
-  </script>
+  $('coaching-text').textContent = data.coaching || 'Keep practicing — consistency is key!';
+  showEl('result-section');
+  setTimeout(() => $('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+const phaseIcons = { 'Stance': '🦵', 'Backswing': '↩️', 'Contact Point': '🎾', 'Follow-Through': '↪️' };
+
+// ─── UI helpers ───────────────────────────────────────────────────────────────
+function showLoading() { showEl('loading'); }
+function hideLoading() { hideEl('loading'); }
+function hideResults()  { hideEl('result-section'); }
+function showError(msg) { $('error-msg').textContent = '❌ ' + msg; showEl('error-msg'); }
+function hideError()    { hideEl('error-msg'); }
+
+function resetAll() {
+  videoBlob = null; extractedFrames = [];
+  $('video-preview').src = '';
+  $('file-input').value = '';
+  hideEl('preview-section');
+  hideEl('loading');
+  hideEl('result-section');
+  hideEl('error-msg');
+  showEl('input-section');
+  stopStream();
+  hideEl('camera-section');
+}
+</script>
 </body>
 </html>

@@ -7,52 +7,73 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { image, mediaType = 'image/jpeg' } = req.body || {};
-  if (!image) {
-    return res.status(400).json({ error: 'No image provided' });
+  const { frames, mediaType = 'image/jpeg' } = req.body || {};
+  if (!frames || !Array.isArray(frames) || frames.length === 0) {
+    return res.status(400).json({ error: 'No frames provided' });
   }
 
-  try {
-    const response = await groq.chat.completions.create({
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image_url',
-              image_url: { url: `data:${mediaType};base64,${image}` },
-            },
-            {
-              type: 'text',
-              text: `You are an expert tennis coach analyzing a player's swing from a video frame.
+  const phaseNames = ['Stance', 'Backswing', 'Contact Point', 'Follow-Through'];
+  const frameCount = Math.min(frames.length, 4);
 
-Analyze the tennis swing technique visible in this image and respond ONLY with valid JSON in this exact format:
+  try {
+    // Build content array: images first, then the analysis prompt
+    const content = [];
+
+    for (let i = 0; i < frameCount; i++) {
+      content.push({
+        type: 'image_url',
+        image_url: { url: `data:${mediaType};base64,${frames[i]}` },
+      });
+    }
+
+    content.push({
+      type: 'text',
+      text: `You are an expert tennis coach. You have been given ${frameCount} frames from a tennis swing video in chronological order.
+Frame 1 = ${phaseNames[0]}
+Frame 2 = ${phaseNames[1]}
+Frame 3 = ${phaseNames[2]}
+Frame 4 = ${phaseNames[3]}
+
+Analyze each frame carefully and respond ONLY with valid JSON in exactly this format (no markdown, no explanation):
 {
-  "score": <overall score 0-100>,
-  "metrics": {
-    "stance": <0-100>,
-    "backswing": <0-100>,
-    "impact": <0-100>,
-    "follow_through": <0-100>
-  },
-  "issues": [<list of 1-3 specific issues as short strings, empty array if none>],
-  "coaching": "<2-3 sentences of actionable coaching advice>"
+  "overall_score": <0-100>,
+  "phases": [
+    {
+      "name": "Stance",
+      "score": <0-100>,
+      "issues": ["<specific issue 1>", "<specific issue 2>"],
+      "tip": "<one actionable correction sentence>"
+    },
+    {
+      "name": "Backswing",
+      "score": <0-100>,
+      "issues": ["<specific issue>"],
+      "tip": "<one actionable correction sentence>"
+    },
+    {
+      "name": "Contact Point",
+      "score": <0-100>,
+      "issues": ["<specific issue>"],
+      "tip": "<one actionable correction sentence>"
+    },
+    {
+      "name": "Follow-Through",
+      "score": <0-100>,
+      "issues": ["<specific issue>"],
+      "tip": "<one actionable correction sentence>"
+    }
+  ],
+  "coaching": "<2-3 sentence overall coaching summary focusing on the most important improvements>"
 }
 
-Scoring guide:
-- 90-100: Professional form
-- 75-89: Strong recreational player
-- 60-74: Developing player with good fundamentals
-- 40-59: Beginner with several areas to improve
-- Below 40: Significant technique issues
+Scoring: 90-100=professional, 75-89=strong, 60-74=developing, 40-59=beginner, <40=significant issues.
+If a frame is unclear, give a fair estimate based on body position visible. Keep issues array empty if the phase looks good.`,
+    });
 
-If the image doesn't clearly show a tennis swing, return score 0 with coaching explaining the image wasn't clear.`,
-            },
-          ],
-        },
-      ],
+    const response = await groq.chat.completions.create({
+      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      max_tokens: 1200,
+      messages: [{ role: 'user', content }],
     });
 
     const text = response.choices[0]?.message?.content || '';
