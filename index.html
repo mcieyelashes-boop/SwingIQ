@@ -1,187 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <title>SwingIQ — Tennis AI Coach</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    :root {
-      --green: #00c46a; --green-dark: #009f55; --bg: #0a0a0f;
-      --card: #12121a; --border: #1e1e2e; --text: #e8e8f0; --muted: #6b6b80;
-    }
-    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; min-height: 100dvh; }
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{--green:#00c46a;--green-dark:#009f55;--bg:#0a0a0f;--card:#12121a;--border:#1e1e2e;--text:#e8e8f0;--muted:#6b6b80;--blue:#4a9fff;--orange:#ff8c42;--yellow:#f5c842}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;min-height:100dvh}
 
-    header { padding: 18px 20px 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
-    .logo { width: 34px; height: 34px; background: var(--green); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
-    header h1 { font-size: 21px; font-weight: 700; letter-spacing: -0.5px; }
-    header span { color: var(--green); }
-    .tagline { font-size: 11px; color: var(--muted); margin-left: auto; }
+    header{padding:16px 20px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+    .logo{width:32px;height:32px;background:var(--green);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+    header h1{font-size:20px;font-weight:700;letter-spacing:-.5px}
+    header span{color:var(--green)}
+    .nav-right{margin-left:auto;display:flex;gap:8px}
+    .nav-btn{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted);cursor:pointer}
+    .nav-btn.active{color:var(--text);border-color:var(--green)}
 
-    .container { padding: 18px; max-width: 500px; margin: 0 auto; }
+    .container{padding:16px;max-width:500px;margin:0 auto}
 
-    /* ── Input zone ── */
-    .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .input-card {
-      background: var(--card); border: 2px dashed var(--border); border-radius: 18px;
-      padding: 22px 12px; text-align: center; cursor: pointer;
-      transition: border-color .2s, background .2s; position: relative;
-    }
-    .input-card:active { background: #16161f; }
-    .input-card.highlight { border-color: var(--green); }
-    .input-card input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-    .input-card .ic-icon { font-size: 30px; margin-bottom: 8px; }
-    .input-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
-    .input-card p { font-size: 11px; color: var(--muted); }
+    /* ── Shot selector ── */
+    #shot-section{margin-bottom:16px}
+    .shot-title{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;font-weight:600}
+    .shot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .shot-btn{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:12px 6px;text-align:center;cursor:pointer;transition:all .15s}
+    .shot-btn .sb-icon{font-size:22px;margin-bottom:4px}
+    .shot-btn .sb-label{font-size:10px;font-weight:600;color:var(--muted)}
+    .shot-btn.selected{border-color:var(--green);background:#0d1f14}
+    .shot-btn.selected .sb-label{color:var(--green)}
+    .shot-btn:active{transform:scale(.96)}
+
+    /* ── Input ── */
+    .input-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .input-card{background:var(--card);border:2px dashed var(--border);border-radius:16px;padding:20px 12px;text-align:center;cursor:pointer;transition:border-color .2s;position:relative}
+    .input-card:active{background:#16161f}
+    .input-card input{position:absolute;inset:0;opacity:0;cursor:pointer}
+    .input-card .ic-icon{font-size:28px;margin-bottom:6px}
+    .input-card h3{font-size:13px;font-weight:600;margin-bottom:2px}
+    .input-card p{font-size:11px;color:var(--muted)}
 
     /* ── Buttons ── */
-    .btn { width: 100%; padding: 14px; border: none; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-primary { background: var(--green); color: #000; }
-    .btn-primary:active { background: var(--green-dark); transform: scale(.98); }
-    .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
-    .btn-secondary:active { opacity: .7; }
-    .btn-danger { background: #c42e2e; color: #fff; }
-    .btn-danger:active { background: #a02020; }
-    .btn:disabled { opacity: .4; cursor: not-allowed; }
-    .btn-row { display: flex; gap: 10px; margin-top: 12px; }
-    .btn-row .btn { flex: 1; }
+    .btn{width:100%;padding:13px;border:none;border-radius:13px;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px}
+    .btn-primary{background:var(--green);color:#000}
+    .btn-primary:active{background:var(--green-dark);transform:scale(.98)}
+    .btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+    .btn-secondary:active{opacity:.7}
+    .btn-danger{background:#c42e2e;color:#fff}
+    .btn:disabled{opacity:.4;cursor:not-allowed}
+    .btn-row{display:flex;gap:9px;margin-top:10px}
+    .btn-row .btn{flex:1}
 
-    /* ── Camera section ── */
-    #camera-section { display: none; margin-top: 16px; }
-    #camera-stream { width: 100%; border-radius: 16px; background: #000; max-height: 300px; object-fit: cover; }
-    .recording-bar { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 10px 14px; background: var(--card); border-radius: 12px; border: 1px solid var(--border); }
-    .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: #c42e2e; animation: blink 1s infinite; flex-shrink: 0; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-    .rec-dot.idle { background: var(--muted); animation: none; }
-    .rec-timer { font-size: 13px; font-weight: 600; flex: 1; }
-    .rec-hint { font-size: 11px; color: var(--muted); }
+    /* ── Camera ── */
+    #camera-section{display:none;margin-top:14px}
+    #camera-stream{width:100%;border-radius:14px;background:#000;max-height:280px;object-fit:cover}
+    .recording-bar{display:flex;align-items:center;gap:9px;margin-top:9px;padding:9px 12px;background:var(--card);border-radius:11px;border:1px solid var(--border)}
+    .rec-dot{width:9px;height:9px;border-radius:50%;background:#c42e2e;animation:blink 1s infinite;flex-shrink:0}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    .rec-dot.idle{background:var(--muted);animation:none}
+    .rec-timer{font-size:13px;font-weight:600;flex:1}
+    .rec-hint{font-size:11px;color:var(--muted)}
 
-    /* Countdown overlay */
-    #countdown-overlay {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7);
-      z-index: 100; align-items: center; justify-content: center; flex-direction: column;
-    }
-    #countdown-overlay.show { display: flex; }
-    #countdown-num { font-size: 96px; font-weight: 800; color: var(--green); line-height: 1; }
-    #countdown-label { font-size: 18px; color: var(--text); margin-top: 8px; }
+    /* Countdown */
+    #countdown-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center;flex-direction:column}
+    #countdown-overlay.show{display:flex}
+    #countdown-num{font-size:88px;font-weight:800;color:var(--green);line-height:1}
+    #countdown-label{font-size:16px;color:var(--text);margin-top:8px}
 
-    /* ── Video preview ── */
-    #preview-section { display: none; margin-top: 16px; }
-    #video-preview { width: 100%; border-radius: 14px; background: #000; max-height: 220px; object-fit: contain; }
-    .frames-row { display: flex; gap: 6px; margin-top: 10px; }
-    .frame-thumb {
-      flex: 1; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden;
-      background: var(--border); position: relative;
-    }
-    .frame-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .frame-thumb .ft-label {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      background: rgba(0,0,0,.65); font-size: 9px; font-weight: 600;
-      text-align: center; padding: 3px; color: var(--text);
-    }
-    .frame-thumb .ft-loading {
-      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-    }
+    /* ── Preview ── */
+    #preview-section{display:none;margin-top:14px}
+    #video-preview{width:100%;border-radius:12px;background:#000;max-height:200px;object-fit:contain}
+    .frames-row{display:flex;gap:5px;margin-top:9px}
+    .frame-thumb{flex:1;aspect-ratio:16/9;border-radius:7px;overflow:hidden;background:var(--border);position:relative}
+    .frame-thumb img{width:100%;height:100%;object-fit:cover}
+    .ft-label{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.65);font-size:8px;font-weight:600;text-align:center;padding:2px;color:var(--text)}
+    .ft-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px}
 
     /* ── Loading ── */
-    #loading { display: none; text-align: center; padding: 40px 20px; }
-    .spinner { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 14px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-text { font-size: 15px; color: var(--muted); }
-    .loading-sub { font-size: 12px; color: var(--muted); margin-top: 5px; opacity: .6; }
+    #loading{display:none;text-align:center;padding:36px 20px}
+    .spinner{width:42px;height:42px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-text{font-size:14px;color:var(--muted)}
+    .loading-sub{font-size:12px;color:var(--muted);margin-top:4px;opacity:.6}
 
     /* ── Error ── */
-    #error-msg { display: none; background: #1a0a0a; border: 1px solid #3a1515; border-radius: 14px; padding: 14px; color: #ff6b6b; font-size: 14px; margin-top: 14px; }
+    #error-msg{display:none;background:#1a0a0a;border:1px solid #3a1515;border-radius:13px;padding:13px;color:#ff6b6b;font-size:13px;margin-top:13px}
 
     /* ── Results ── */
-    #result-section { display: none; margin-top: 20px; }
+    #result-section{display:none;margin-top:18px}
 
-    .overall-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 22px; text-align: center; margin-bottom: 16px; }
-    .score-ring { width: 88px; height: 88px; border-radius: 50%; border: 6px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 28px; font-weight: 800; }
-    .score-ring.great { border-color: var(--green); color: var(--green); }
-    .score-ring.good  { border-color: #f5c842; color: #f5c842; }
-    .score-ring.fair  { border-color: #ff8c42; color: #ff8c42; }
-    .overall-label { font-size: 18px; font-weight: 700; }
-    .overall-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .overall-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;text-align:center;margin-bottom:14px}
+    .shot-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(0,196,106,.15);color:var(--green);margin-bottom:10px}
+    .score-ring{width:82px;height:82px;border-radius:50%;border:5px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:26px;font-weight:800}
+    .score-ring.great{border-color:var(--green);color:var(--green)}
+    .score-ring.good{border-color:var(--yellow);color:var(--yellow)}
+    .score-ring.fair{border-color:var(--orange);color:var(--orange)}
+    .overall-label{font-size:17px;font-weight:700}
+    .overall-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+    /* Topspin score (forehand only) */
+    .topspin-card{background:linear-gradient(135deg,#0d1f14,#081410);border:1px solid #1a3020;border-radius:16px;padding:14px;margin-bottom:14px}
+    .ts-title{font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px}
+    .ts-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .ts-metric{background:#0a1a0f;border-radius:9px;padding:10px}
+    .ts-metric-name{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+    .ts-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:4px}
+    .ts-fill{height:100%;border-radius:3px;transition:width .8s ease}
+    .ts-val{font-size:15px;font-weight:700}
+    .ts-big{grid-column:span 2;display:flex;align-items:center;gap:12px;background:#0a1a0f;border-radius:9px;padding:10px}
+    .ts-big-num{font-size:32px;font-weight:800;color:var(--green)}
+    .ts-big-label{font-size:12px;color:var(--muted)}
 
     /* Phase cards */
-    .phases-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; }
+    .phases-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px}
+    .phase-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px}
+    .phase-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .phase-name{font-size:14px;font-weight:700}
+    .phase-badge{padding:3px 9px;border-radius:20px;font-size:12px;font-weight:700}
+    .phase-badge.great{background:rgba(0,196,106,.15);color:var(--green)}
+    .phase-badge.good{background:rgba(245,200,66,.15);color:var(--yellow)}
+    .phase-badge.fair{background:rgba(255,140,66,.15);color:var(--orange)}
+    .comparison{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+    .cmp-box{border-radius:9px;overflow:hidden;background:#0d0d14}
+    .cmp-label{font-size:9px;font-weight:600;text-align:center;padding:4px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border)}
+    .cmp-frame img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover}
+    .cmp-svg{padding:5px;display:flex;align-items:center;justify-content:center;aspect-ratio:4/3}
+    .cmp-svg svg{width:100%;height:100%}
+    .phase-issue{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:#ff9f6b;margin-bottom:4px;line-height:1.4}
+    .phase-issue-dot{width:5px;height:5px;border-radius:50%;background:var(--orange);flex-shrink:0;margin-top:4px}
+    .phase-good{font-size:12px;color:var(--green);margin-bottom:4px}
+    .phase-tip{background:#0d1a12;border:1px solid #1a3020;border-radius:9px;padding:9px 11px;font-size:12px;line-height:1.5;color:#b8f0d0}
+    .phase-tip-label{font-size:10px;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
 
-    .phase-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; margin-bottom: 12px; }
-    .phase-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .phase-name { font-size: 15px; font-weight: 700; }
-    .phase-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-    .phase-badge.great { background: rgba(0,196,106,.15); color: var(--green); }
-    .phase-badge.good  { background: rgba(245,200,66,.15); color: #f5c842; }
-    .phase-badge.fair  { background: rgba(255,140,66,.15); color: #ff8c42; }
-
-    /* Comparison row */
-    .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-    .cmp-box { border-radius: 10px; overflow: hidden; background: #0d0d14; }
-    .cmp-label { font-size: 10px; font-weight: 600; text-align: center; padding: 5px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; border-bottom: 1px solid var(--border); }
-    .cmp-frame img { width: 100%; display: block; aspect-ratio: 4/3; object-fit: cover; }
-    .cmp-svg { padding: 6px; display: flex; align-items: center; justify-content: center; aspect-ratio: 4/3; }
-    .cmp-svg svg { width: 100%; height: 100%; }
-
-    /* Issues + tip */
-    .phase-issues { margin-bottom: 8px; }
-    .phase-issue { display: flex; align-items: flex-start; gap: 7px; font-size: 13px; color: #ff9f6b; margin-bottom: 5px; line-height: 1.4; }
-    .phase-issue-dot { width: 5px; height: 5px; border-radius: 50%; background: #ff8c42; flex-shrink: 0; margin-top: 5px; }
-    .phase-good { font-size: 13px; color: var(--green); margin-bottom: 5px; }
-
-    .phase-tip { background: #0d1a12; border: 1px solid #1a3020; border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.5; color: #b8f0d0; }
-    .phase-tip-label { font-size: 10px; color: var(--green); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; }
+    /* Drill recommendations */
+    .drills-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px}
+    .drills-title{font-size:13px;font-weight:700;margin-bottom:10px}
+    .drill-item{display:flex;gap:10px;padding:9px;background:#0d0d14;border-radius:9px;margin-bottom:7px}
+    .drill-num{width:22px;height:22px;border-radius:50%;background:rgba(0,196,106,.15);color:var(--green);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+    .drill-name{font-size:13px;font-weight:600;margin-bottom:2px}
+    .drill-desc{font-size:11px;color:var(--muted);line-height:1.4}
 
     /* Coaching */
-    .coaching-card { background: linear-gradient(135deg,#0d1f14,#0a1510); border: 1px solid #1a3025; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
-    .coaching-lbl { font-size: 11px; color: var(--green); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 7px; font-weight: 600; }
-    .coaching-text { font-size: 14px; line-height: 1.6; }
+    .coaching-card{background:linear-gradient(135deg,#0d1f14,#0a1510);border:1px solid #1a3025;border-radius:14px;padding:14px;margin-bottom:14px}
+    .coaching-lbl{font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;font-weight:600}
+    .coaching-text{font-size:13px;line-height:1.6}
 
-    .try-again { margin-top: 4px; }
+    /* Follow-up CTA */
+    .followup-cta{background:linear-gradient(135deg,#0d1a2a,#0a1020);border:1px solid #1a2a40;border-radius:14px;padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+    .followup-cta .fc-icon{font-size:26px;flex-shrink:0}
+    .followup-cta h3{font-size:13px;font-weight:700;margin-bottom:2px}
+    .followup-cta p{font-size:11px;color:var(--muted)}
+    .btn-followup{margin-top:8px;background:#1a3a5c;color:#7dc8ff;border:1px solid #2a4a6c;border-radius:11px;padding:9px 14px;font-size:12px;font-weight:600;width:100%;cursor:pointer}
+    .btn-followup:active{opacity:.7}
 
-    /* ── Follow-up CTA ── */
-    .followup-cta { background: linear-gradient(135deg,#0d1a2a,#0a1020); border: 1px solid #1a2a40; border-radius: 16px; padding: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 14px; }
-    .followup-cta .fc-icon { font-size: 28px; flex-shrink: 0; }
-    .followup-cta h3 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
-    .followup-cta p { font-size: 12px; color: var(--muted); }
-    .btn-followup { margin-top: 10px; background: #1a3a5c; color: #7dc8ff; border: 1px solid #2a4a6c; border-radius: 12px; padding: 10px 16px; font-size: 13px; font-weight: 600; width: 100%; cursor: pointer; }
-    .btn-followup:active { opacity: .7; }
+    /* History panel */
+    #history-section{display:none;margin-top:4px}
+    .history-title{font-size:14px;font-weight:700;margin-bottom:10px}
+    .history-item{display:flex;align-items:center;gap:10px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:11px;margin-bottom:7px;cursor:pointer}
+    .history-item:active{opacity:.7}
+    .hi-shot{width:32px;height:32px;border-radius:8px;background:rgba(0,196,106,.12);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+    .hi-info{flex:1}
+    .hi-name{font-size:13px;font-weight:600}
+    .hi-date{font-size:11px;color:var(--muted)}
+    .hi-score{font-size:18px;font-weight:800;color:var(--green)}
+    .history-empty{font-size:13px;color:var(--muted);text-align:center;padding:20px}
 
-    /* ── Comparison / Progress Report ── */
-    #comparison-section { display: none; margin-top: 20px; }
-    .progress-header { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 14px; }
-    .progress-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
-    .scores-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 14px; }
-    .sess-score { text-align: center; }
-    .sess-num { font-size: 36px; font-weight: 800; }
-    .sess-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .arrow-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .arrow-line { font-size: 22px; color: var(--muted); }
-    .delta-badge { padding: 5px 12px; border-radius: 20px; font-size: 15px; font-weight: 800; }
-    .delta-up   { background: rgba(0,196,106,.15); color: var(--green); }
-    .delta-down { background: rgba(255,80,80,.15);  color: #ff6b6b; }
-    .delta-same { background: rgba(150,150,150,.15); color: var(--muted); }
-    .verdict    { font-size: 13px; color: var(--muted); text-align: center; }
-
-    /* Phase comparison table */
-    .phase-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-    .phase-table th { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; padding: 4px 6px; text-align: left; }
-    .phase-table td { font-size: 13px; padding: 7px 6px; border-top: 1px solid var(--border); }
-    .phase-table td:last-child { text-align: right; }
-    .td-delta-up   { color: var(--green); font-weight: 700; }
-    .td-delta-down { color: #ff6b6b; font-weight: 700; }
-    .td-delta-same { color: var(--muted); }
-
-    /* Fixed / remaining issues */
-    .issue-section { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
-    .issue-sec-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
-    .fixed-item   { display: flex; gap: 8px; font-size: 13px; color: #b8f0d0; margin-bottom: 6px; line-height: 1.4; }
-    .remain-item  { display: flex; gap: 8px; font-size: 13px; color: #ffcba0; margin-bottom: 6px; line-height: 1.4; }
-    .new-item     { display: flex; gap: 8px; font-size: 13px; color: #ffa0a0; margin-bottom: 6px; line-height: 1.4; }
-    .issue-none   { font-size: 13px; color: var(--muted); font-style: italic; }
+    /* Comparison */
+    #comparison-section{display:none;margin-top:18px}
+    .progress-header{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:12px}
+    .progress-title{font-size:15px;font-weight:700;margin-bottom:12px}
+    .scores-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px}
+    .sess-score{text-align:center}
+    .sess-num{font-size:34px;font-weight:800}
+    .sess-lbl{font-size:10px;color:var(--muted);margin-top:2px}
+    .arrow-col{display:flex;flex-direction:column;align-items:center;gap:3px}
+    .arrow-line{font-size:20px;color:var(--muted)}
+    .delta-badge{padding:4px 11px;border-radius:20px;font-size:14px;font-weight:800}
+    .delta-up{background:rgba(0,196,106,.15);color:var(--green)}
+    .delta-down{background:rgba(255,80,80,.15);color:#ff6b6b}
+    .delta-same{background:rgba(150,150,150,.15);color:var(--muted)}
+    .verdict{font-size:12px;color:var(--muted);text-align:center}
+    .phase-table{width:100%;border-collapse:collapse;margin-top:10px}
+    .phase-table th{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:3px 5px;text-align:left}
+    .phase-table td{font-size:12px;padding:6px 5px;border-top:1px solid var(--border)}
+    .phase-table td:last-child{text-align:right}
+    .td-up{color:var(--green);font-weight:700}
+    .td-down{color:#ff6b6b;font-weight:700}
+    .td-same{color:var(--muted)}
+    .issue-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px}
+    .issue-sec-title{font-size:13px;font-weight:700;margin-bottom:8px}
+    .fixed-item{display:flex;gap:7px;font-size:12px;color:#b8f0d0;margin-bottom:5px;line-height:1.4}
+    .remain-item{display:flex;gap:7px;font-size:12px;color:#ffcba0;margin-bottom:5px;line-height:1.4}
+    .issue-none{font-size:12px;color:var(--muted);font-style:italic}
+    .try-again{margin-top:4px}
   </style>
 </head>
 <body>
@@ -189,10 +201,12 @@
 <header>
   <div class="logo">🎾</div>
   <h1>Swing<span>IQ</span></h1>
-  <p class="tagline">AI Tennis Coach</p>
+  <div class="nav-right">
+    <button class="nav-btn" id="btn-analyze-tab" onclick="showTab('analyze')">Analyze</button>
+    <button class="nav-btn" id="btn-history-tab" onclick="showTab('history')">History</button>
+  </div>
 </header>
 
-<!-- Countdown overlay -->
 <div id="countdown-overlay">
   <div id="countdown-num">3</div>
   <div id="countdown-label">Get ready…</div>
@@ -200,222 +214,272 @@
 
 <div class="container">
 
-  <!-- Input options -->
-  <div id="input-section">
-    <div class="input-grid">
-      <div class="input-card" id="upload-card">
-        <input type="file" accept="video/*" id="file-input" />
-        <div class="ic-icon">🎬</div>
-        <h3>Upload Video</h3>
-        <p>From your library</p>
-      </div>
-      <div class="input-card" id="record-card" onclick="startCamera()">
-        <div class="ic-icon">🔴</div>
-        <h3>Record Swing</h3>
-        <p>Use camera</p>
-      </div>
-    </div>
-    <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px;">Best results: 3–5 sec full swing video, good lighting</p>
-  </div>
+  <!-- ── ANALYZE TAB ── -->
+  <div id="tab-analyze">
 
-  <!-- Camera section -->
-  <div id="camera-section">
-    <video id="camera-stream" playsinline muted autoplay></video>
-    <div class="recording-bar">
-      <div class="rec-dot idle" id="rec-dot"></div>
-      <span class="rec-timer" id="rec-timer">Ready to record</span>
-      <span class="rec-hint" id="rec-hint">Tap Record when ready</span>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-primary" id="rec-start-btn" onclick="startRecording()">⏺ Record (5s)</button>
-      <button class="btn btn-danger" id="rec-stop-btn" onclick="stopRecording()" style="display:none">⏹ Stop</button>
-      <button class="btn btn-secondary" style="max-width:60px" onclick="closeCamera()">✕</button>
-    </div>
-  </div>
-
-  <!-- Video preview + frame thumbnails -->
-  <div id="preview-section">
-    <video id="video-preview" playsinline muted controls></video>
-    <div class="frames-row" id="frames-row">
-      <div class="frame-thumb" id="ft0"><div class="ft-loading">⏳</div><div class="ft-label">Stance</div></div>
-      <div class="frame-thumb" id="ft1"><div class="ft-loading">⏳</div><div class="ft-label">Backswing</div></div>
-      <div class="frame-thumb" id="ft2"><div class="ft-loading">⏳</div><div class="ft-label">Contact</div></div>
-      <div class="frame-thumb" id="ft3"><div class="ft-loading">⏳</div><div class="ft-label">Follow</div></div>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-primary" id="analyze-btn" onclick="analyzeSwing()" disabled>⚡ Analyze Swing</button>
-      <button class="btn btn-secondary" style="max-width:60px" onclick="resetAll()">✕</button>
-    </div>
-  </div>
-
-  <!-- Loading -->
-  <div id="loading">
-    <div class="spinner"></div>
-    <p class="loading-text">Analyzing your swing…</p>
-    <p class="loading-sub">Reviewing all 4 phases</p>
-  </div>
-
-  <!-- Error -->
-  <div id="error-msg"></div>
-
-  <!-- Results -->
-  <div id="result-section">
-    <!-- Overall -->
-    <div class="overall-card">
-      <div class="score-ring" id="score-ring"><span id="score-value">--</span></div>
-      <div class="overall-label" id="overall-label">--</div>
-      <div class="overall-sub">Overall Swing Score</div>
-    </div>
-
-    <!-- Phase cards injected here -->
-    <div class="phases-title">Phase-by-Phase Breakdown</div>
-    <div id="phases-container"></div>
-
-    <!-- Coaching -->
-    <div class="coaching-card">
-      <div class="coaching-lbl">🤖 AI Coach Summary</div>
-      <div class="coaching-text" id="coaching-text">--</div>
-    </div>
-
-    <!-- Follow-up CTA (shown after first analysis) -->
-    <div class="followup-cta" id="followup-cta" style="display:none">
-      <div class="fc-icon">📈</div>
-      <div style="flex:1">
-        <h3>Did you improve?</h3>
-        <p>Record a follow-up swing to see your progress</p>
-        <button class="btn-followup" onclick="startFollowUp()">🎾 Record Follow-up Swing</button>
-      </div>
-    </div>
-
-    <div class="try-again">
-      <button class="btn btn-secondary" onclick="resetAll()">↩ Analyze Another Swing</button>
-    </div>
-  </div>
-
-  <!-- Comparison / Progress Report (shown after follow-up) -->
-  <div id="comparison-section">
-    <div class="progress-header">
-      <div class="progress-title">📊 Progress Report</div>
-      <div class="scores-row">
-        <div class="sess-score">
-          <div class="sess-num" id="cmp-score1">--</div>
-          <div class="sess-lbl">Session 1</div>
+    <!-- Shot selector -->
+    <div id="shot-section" style="margin-top:14px">
+      <div class="shot-title">Select Shot Type</div>
+      <div class="shot-grid">
+        <div class="shot-btn selected" id="shot-forehand" onclick="selectShot('forehand')">
+          <div class="sb-icon">🎾</div>
+          <div class="sb-label">Forehand</div>
         </div>
-        <div class="arrow-col">
-          <div class="arrow-line">→</div>
-          <div class="delta-badge" id="cmp-delta">--</div>
+        <div class="shot-btn" id="shot-backhand" onclick="selectShot('backhand')">
+          <div class="sb-icon">🏓</div>
+          <div class="sb-label">Backhand</div>
         </div>
-        <div class="sess-score">
-          <div class="sess-num" id="cmp-score2">--</div>
-          <div class="sess-lbl">Session 2</div>
+        <div class="shot-btn" id="shot-serve" onclick="selectShot('serve')">
+          <div class="sb-icon">💫</div>
+          <div class="sb-label">Serve</div>
+        </div>
+        <div class="shot-btn" id="shot-volley" onclick="selectShot('volley')">
+          <div class="sb-icon">⚡</div>
+          <div class="sb-label">Volley</div>
         </div>
       </div>
-      <div class="verdict" id="cmp-verdict"></div>
-      <table class="phase-table" style="margin-top:12px">
-        <thead><tr>
-          <th>Phase</th><th>Before</th><th>After</th><th>Change</th>
-        </tr></thead>
-        <tbody id="cmp-phase-rows"></tbody>
-      </table>
     </div>
 
-    <div class="issue-section" id="cmp-fixed-section">
-      <div class="issue-sec-title">✅ Issues You Fixed</div>
-      <div id="cmp-fixed-list"></div>
+    <!-- Input -->
+    <div id="input-section" style="margin-top:12px">
+      <div class="input-grid">
+        <div class="input-card">
+          <input type="file" accept="video/*" id="file-input"/>
+          <div class="ic-icon">🎬</div>
+          <h3>Upload Video</h3>
+          <p>From library</p>
+        </div>
+        <div class="input-card" onclick="startCamera()">
+          <div class="ic-icon">🔴</div>
+          <h3>Record Swing</h3>
+          <p>Use camera</p>
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px">3–5 sec video • good lighting • full body visible</p>
     </div>
 
-    <div class="issue-section" id="cmp-remain-section">
-      <div class="issue-sec-title">⚠️ Still Working On</div>
-      <div id="cmp-remain-list"></div>
+    <!-- Camera -->
+    <div id="camera-section">
+      <video id="camera-stream" playsinline muted autoplay></video>
+      <div class="recording-bar">
+        <div class="rec-dot idle" id="rec-dot"></div>
+        <span class="rec-timer" id="rec-timer">Ready to record</span>
+        <span class="rec-hint" id="rec-hint">Tap Record</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="rec-start-btn" onclick="startRecording()">⏺ Record (5s)</button>
+        <button class="btn btn-danger" id="rec-stop-btn" onclick="stopRecording()" style="display:none">⏹ Stop</button>
+        <button class="btn btn-secondary" style="max-width:56px" onclick="closeCamera()">✕</button>
+      </div>
     </div>
 
-    <div class="coaching-card">
-      <div class="coaching-lbl">🤖 Coach Progress Notes</div>
-      <div class="coaching-text" id="cmp-coaching"></div>
+    <!-- Preview + frames -->
+    <div id="preview-section">
+      <video id="video-preview" playsinline muted controls></video>
+      <div class="frames-row" id="frames-row">
+        <div class="frame-thumb" id="ft0"><div class="ft-loading">⏳</div><div class="ft-label">–</div></div>
+        <div class="frame-thumb" id="ft1"><div class="ft-loading">⏳</div><div class="ft-label">–</div></div>
+        <div class="frame-thumb" id="ft2"><div class="ft-loading">⏳</div><div class="ft-label">–</div></div>
+        <div class="frame-thumb" id="ft3"><div class="ft-loading">⏳</div><div class="ft-label">–</div></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="analyze-btn" onclick="analyzeSwing()" disabled>⚡ Analyze Swing</button>
+        <button class="btn btn-secondary" style="max-width:56px" onclick="resetAll()">✕</button>
+      </div>
     </div>
 
-    <div class="try-again">
-      <button class="btn btn-secondary" onclick="resetAll()">↩ Start Fresh</button>
+    <!-- Loading -->
+    <div id="loading">
+      <div class="spinner"></div>
+      <p class="loading-text">Analyzing your <span id="loading-shot">swing</span>…</p>
+      <p class="loading-sub">Reviewing all 4 phases with AI</p>
     </div>
+
+    <!-- Error -->
+    <div id="error-msg"></div>
+
+    <!-- Results -->
+    <div id="result-section">
+      <div class="overall-card">
+        <div class="shot-pill" id="result-shot-pill">Forehand</div>
+        <div class="score-ring" id="score-ring"><span id="score-value">--</span></div>
+        <div class="overall-label" id="overall-label">--</div>
+        <div class="overall-sub">Overall Swing Score</div>
+      </div>
+
+      <!-- Topspin score (forehand only) -->
+      <div id="topspin-section" style="display:none">
+        <div class="topspin-card">
+          <div class="ts-title">🌀 Topspin Analysis</div>
+          <div class="ts-grid">
+            <div class="ts-big">
+              <div class="ts-big-num" id="ts-score">--</div>
+              <div>
+                <div style="font-size:13px;font-weight:700">Topspin Score</div>
+                <div class="ts-big-label">Overall spin quality</div>
+              </div>
+            </div>
+            <div class="ts-metric">
+              <div class="ts-metric-name">Swing Path</div>
+              <div class="ts-bar"><div class="ts-fill" id="ts-path-bar" style="width:0%"></div></div>
+              <div class="ts-val" id="ts-path">--</div>
+            </div>
+            <div class="ts-metric">
+              <div class="ts-metric-name">Contact Height</div>
+              <div class="ts-bar"><div class="ts-fill" id="ts-contact-bar" style="width:0%"></div></div>
+              <div class="ts-val" id="ts-contact">--</div>
+            </div>
+            <div class="ts-metric">
+              <div class="ts-metric-name">Brush Angle</div>
+              <div class="ts-bar"><div class="ts-fill" id="ts-brush-bar" style="width:0%"></div></div>
+              <div class="ts-val" id="ts-brush">--</div>
+            </div>
+            <div class="ts-metric">
+              <div class="ts-metric-name">Follow-Through</div>
+              <div class="ts-bar"><div class="ts-fill" id="ts-follow-bar" style="width:0%"></div></div>
+              <div class="ts-val" id="ts-follow">--</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phases-title">Phase-by-Phase Breakdown</div>
+      <div id="phases-container"></div>
+
+      <!-- Drill recommendations -->
+      <div class="drills-card" id="drills-card">
+        <div class="drills-title">🏋️ Recommended Drills</div>
+        <div id="drills-list"></div>
+      </div>
+
+      <div class="coaching-card">
+        <div class="coaching-lbl">🤖 AI Coach</div>
+        <div class="coaching-text" id="coaching-text">--</div>
+      </div>
+
+      <div class="followup-cta" id="followup-cta" style="display:none">
+        <div class="fc-icon">📈</div>
+        <div style="flex:1">
+          <h3>Track your progress</h3>
+          <p>Record a follow-up to see if you improved</p>
+          <button class="btn-followup" onclick="startFollowUp()">🎾 Record Follow-up Swing</button>
+        </div>
+      </div>
+
+      <div class="try-again">
+        <button class="btn btn-secondary" onclick="resetAll()">↩ Analyze Another Swing</button>
+      </div>
+    </div>
+
+    <!-- Comparison -->
+    <div id="comparison-section">
+      <div class="progress-header">
+        <div class="progress-title">📊 Progress Report</div>
+        <div class="scores-row">
+          <div class="sess-score"><div class="sess-num" id="cmp-score1">--</div><div class="sess-lbl">Session 1</div></div>
+          <div class="arrow-col"><div class="arrow-line">→</div><div class="delta-badge" id="cmp-delta">--</div></div>
+          <div class="sess-score"><div class="sess-num" id="cmp-score2">--</div><div class="sess-lbl">Session 2</div></div>
+        </div>
+        <div class="verdict" id="cmp-verdict"></div>
+        <table class="phase-table" style="margin-top:10px">
+          <thead><tr><th>Phase</th><th>Before</th><th>After</th><th>Δ</th></tr></thead>
+          <tbody id="cmp-phase-rows"></tbody>
+        </table>
+      </div>
+      <div class="issue-section"><div class="issue-sec-title">✅ Issues Fixed</div><div id="cmp-fixed-list"></div></div>
+      <div class="issue-section"><div class="issue-sec-title">⚠️ Still Working On</div><div id="cmp-remain-list"></div></div>
+      <div class="coaching-card"><div class="coaching-lbl">🤖 Progress Notes</div><div class="coaching-text" id="cmp-coaching"></div></div>
+      <div class="try-again"><button class="btn btn-secondary" onclick="resetAll()">↩ Start Fresh</button></div>
+    </div>
+
+  </div><!-- /tab-analyze -->
+
+  <!-- ── HISTORY TAB ── -->
+  <div id="tab-history" style="display:none;margin-top:16px">
+    <div class="history-title">📋 Session History</div>
+    <div id="history-list"></div>
   </div>
 
-</div><!-- /container -->
+</div>
 
 <script>
-// ─── Reference SVGs for each phase ───────────────────────────────────────────
-const REF_SVGS = {
-  'Stance': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
-    <style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round} .a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2} .l{stroke:#333;stroke-width:1}</style>
-    <!-- ground --><line class="l" x1="10" y1="142" x2="90" y2="142"/>
-    <!-- feet arrows: shoulder width --><line class="a" x1="28" y1="145" x2="72" y2="145"/>
-    <text x="50" y="149" fill="#4af" font-size="6" text-anchor="middle">shoulder width</text>
-    <!-- legs --><line class="s" x1="50" y1="82" x2="32" y2="115"/><line class="s" x1="32" y1="115" x2="28" y2="140"/>
-    <line class="s" x1="50" y1="82" x2="68" y2="115"/><line class="s" x1="68" y1="115" x2="72" y2="140"/>
-    <!-- knee bend indicator --><path class="a" d="M22,110 Q18,115 22,120"/><text x="14" y="115" fill="#4af" font-size="5.5">bent</text>
-    <!-- body --><line class="s" x1="50" y1="35" x2="50" y2="82"/>
-    <!-- head --><circle cx="50" cy="25" r="10" class="s"/>
-    <!-- left arm --><line class="s" x1="50" y1="50" x2="34" y2="65"/>
-    <!-- right arm holding racket --><line class="s" x1="50" y1="50" x2="64" y2="62"/>
-    <!-- racket (in front, loose) -->
-    <ellipse cx="68" cy="58" rx="6" ry="8" class="s" transform="rotate(-20,68,58)"/>
-    <line class="s" x1="65" y1="64" x2="61" y2="72"/>
-    <!-- weight center arrow --><path class="a" d="M50,85 L50,95"/><polygon points="50,98 47,93 53,93" fill="#4af"/>
-    <text x="54" y="94" fill="#4af" font-size="5.5">centered</text>
-  </svg>`,
-
-  'Backswing': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
-    <style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round} .a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2} .l{stroke:#333;stroke-width:1}</style>
-    <line class="l" x1="10" y1="142" x2="90" y2="142"/>
-    <!-- legs --><line class="s" x1="46" y1="82" x2="30" y2="115"/><line class="s" x1="30" y1="115" x2="28" y2="140"/>
-    <line class="s" x1="46" y1="82" x2="60" y2="112"/><line class="s" x1="60" y1="112" x2="62" y2="140"/>
-    <!-- weight on back foot --><path class="a" d="M22,125 L28,140"/><text x="10" y="132" fill="#4af" font-size="5.5">weight back</text>
-    <!-- body rotated --><path class="s" d="M46,35 Q52,58 46,82"/>
-    <!-- head --><circle cx="46" cy="25" r="10" class="s"/>
-    <!-- left arm (guide) forward --><line class="s" x1="46" y1="50" x2="30" y2="58"/>
-    <!-- right arm: racket high back --><line class="s" x1="46" y1="50" x2="72" y2="32"/>
-    <!-- racket high --><ellipse cx="76" cy="26" rx="7" ry="9" class="s" transform="rotate(30,76,26)"/>
-    <line class="s" x1="72" y1="32" x2="69" y2="40"/>
-    <!-- arc showing racket path --><path class="a" d="M68,58 Q82,40 76,24"/><polygon points="76,21 73,26 79,26" fill="#4af"/>
-    <text x="82" y="38" fill="#4af" font-size="5.5">high</text>
-    <!-- shoulder rotation --><path class="a" d="M36,42 Q46,35 56,42"/><text x="36" y="36" fill="#4af" font-size="5.5">rotate</text>
-  </svg>`,
-
-  'Contact Point': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
-    <style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round} .a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2} .l{stroke:#333;stroke-width:1}</style>
-    <line class="l" x1="10" y1="142" x2="90" y2="142"/>
-    <!-- legs --><line class="s" x1="46" y1="82" x2="32" y2="115"/><line class="s" x1="32" y1="115" x2="30" y2="140"/>
-    <line class="s" x1="46" y1="82" x2="62" y2="112"/><line class="s" x1="62" y1="112" x2="66" y2="140"/>
-    <!-- weight forward --><path class="a" d="M60,120 L66,140"/><text x="68" y="132" fill="#4af" font-size="5.5">weight fwd</text>
-    <!-- body --><line class="s" x1="46" y1="35" x2="46" y2="82"/>
-    <!-- head --><circle cx="46" cy="25" r="10" class="s"/>
-    <!-- left arm (balance) --><line class="s" x1="46" y1="50" x2="28" y2="62"/>
-    <!-- right arm fully extended --><line class="s" x1="46" y1="50" x2="76" y2="62"/>
-    <!-- racket face flat at contact --><rect x="76" y="54" width="10" height="15" class="s" rx="2"/>
-    <line class="s" x1="81" y1="69" x2="79" y2="78"/>
-    <!-- ball at contact --><circle cx="82" cy="58" r="4" stroke="#f5c842" stroke-width="1.5" fill="rgba(245,200,66,.15)"/>
-    <!-- contact point zone --><path class="a" d="M74,50 Q86,50 86,68"/><text x="74" y="46" fill="#4af" font-size="5.5">in front</text>
-    <!-- arm extension arrow --><path class="a" d="M58,56 L73,60"/>
-    <text x="54" y="52" fill="#4af" font-size="5.5">extend!</text>
-  </svg>`,
-
-  'Follow-Through': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
-    <style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round} .a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2} .l{stroke:#333;stroke-width:1}</style>
-    <line class="l" x1="10" y1="142" x2="90" y2="142"/>
-    <!-- legs: weight fully on front --><line class="s" x1="46" y1="82" x2="34" y2="115"/><line class="s" x1="34" y1="115" x2="34" y2="140"/>
-    <line class="s" x1="46" y1="82" x2="60" y2="112"/><line class="s" x1="60" y1="112" x2="64" y2="140"/>
-    <!-- body rotated through --><path class="s" d="M46,35 Q40,58 46,82"/>
-    <!-- head facing forward --><circle cx="44" cy="25" r="10" class="s"/>
-    <!-- left arm wraps --><line class="s" x1="46" y1="50" x2="62" y2="56"/>
-    <!-- right arm: racket over left shoulder --><line class="s" x1="46" y1="50" x2="28" y2="30"/>
-    <!-- racket over shoulder --><ellipse cx="24" cy="24" rx="7" ry="9" class="s" transform="rotate(-40,24,24)"/>
-    <line class="s" x1="28" y1="30" x2="30" y2="38"/>
-    <!-- follow-through arc --><path class="a" d="M72,60 Q65,30 26,22"/><polygon points="23,21 26,27 29,21" fill="#4af"/>
-    <text x="52" y="28" fill="#4af" font-size="5.5">over shoulder</text>
-    <!-- full rotation --><path class="a" d="M54,72 Q62,68 62,82"/><text x="64" y="76" fill="#4af" font-size="5.5">rotate</text>
-  </svg>`,
+// ══════════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════════
+const SHOT_CONFIG = {
+  forehand: { label:'Forehand Topspin', icon:'🎾', phases:['Stance','Backswing','Contact Point','Follow-Through'] },
+  backhand: { label:'Backhand',         icon:'🏓', phases:['Unit Turn','Backswing','Contact Point','Follow-Through'] },
+  serve:    { label:'Serve',            icon:'💫', phases:['Trophy Position','Ball Toss','Contact','Follow-Through'] },
+  volley:   { label:'Volley',           icon:'⚡', phases:['Ready Position','Preparation','Contact','Recovery'] },
 };
 
-// ─── State ────────────────────────────────────────────────────────────────────
+const PHASE_ICONS = {
+  'Stance':'🦵','Backswing':'↩️','Contact Point':'🎾','Follow-Through':'↪️',
+  'Unit Turn':'🔄','Trophy Position':'🏆','Ball Toss':'⬆️',
+  'Contact':'💥','Ready Position':'👀','Preparation':'↪️','Recovery':'🔁',
+};
+
+// Drills lookup: shotType → weak phase → drill
+const DRILLS_DB = {
+  forehand: {
+    'Stance':        [{name:'Split Step Drill',      desc:'Before every ball, do a small split step. Trains explosive weight transfer and ready stance.'}],
+    'Backswing':     [{name:'Shadow Swing Drill',    desc:'Swing without ball 20x focusing on high takeback and shoulder turn. Builds muscle memory.'}],
+    'Contact Point': [{name:'Cone Marker Drill',     desc:'Place a cone in front of your lead hip. Practice hitting every ball just past the cone position.'}],
+    'Follow-Through':[{name:'Fence Brush Drill',     desc:'Stand facing a fence, practice brushing racket upward and finishing over opposite shoulder.'}],
+    'topspin':       [{name:'Topspin Loop Drill',    desc:'Drop-feed ball and focus on brushing up the back of the ball, finishing racket high above shoulder.'}],
+  },
+  backhand: {
+    'Unit Turn':     [{name:'Turn & Hold Drill',     desc:'On each ball, turn shoulders completely and hold for 1 second before swinging. Fixes late preparation.'}],
+    'Backswing':     [{name:'Racket Back Early',     desc:'As soon as you see the ball coming, get racket back. Practice with slow feeds first.'}],
+    'Contact Point': [{name:'Side-On Contact Drill', desc:'Practice hitting with body sideways, ensuring contact is in front of lead hip.'}],
+    'Follow-Through':[{name:'Windshield Wiper',      desc:'For topspin backhand: finish with racket wiping across body like a windshield wiper.'}],
+  },
+  serve: {
+    'Trophy Position':[{name:'Statue of Liberty',   desc:'Freeze in trophy pose for 3 seconds before each serve. Trains balance and coil position.'}],
+    'Ball Toss':      [{name:'Toss & Catch Drill',   desc:'Toss ball and catch it without hitting. Toss should land just inside baseline in front of you.'}],
+    'Contact':        [{name:'Jump & Hit Drill',     desc:'Exaggerate leg push-off on every serve to ingrain upward momentum into contact.'}],
+    'Follow-Through': [{name:'Pronation Drill',      desc:'Slow motion serves focusing on wrist pronation through contact for power and spin.'}],
+  },
+  volley: {
+    'Ready Position': [{name:'Split Step at Net',    desc:'Practise split-stepping as opponent hits. Builds explosive first-step reaction at net.'}],
+    'Preparation':    [{name:'Compact Backswing',    desc:'Put your non-dominant hand on throat of racket to physically limit backswing size.'}],
+    'Contact':        [{name:'Punch Volley Feed',    desc:'Have partner feed easy volleys while you focus only on punching forward, no swing.'}],
+    'Recovery':       [{name:'Reset Drill',          desc:'After every volley, actively reset to ready position. Coach yells "reset" as reminder.'}],
+  },
+};
+
+// Reference SVGs per shot type and phase
+const REF_SVGS = {
+  forehand: {
+    'Stance': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="142" x2="90" y2="142"/><line class="a" x1="28" y1="145" x2="72" y2="145"/><text x="50" y="149" fill="#4af" font-size="6" text-anchor="middle">shoulder width</text><line class="s" x1="50" y1="82" x2="32" y2="115"/><line class="s" x1="32" y1="115" x2="28" y2="140"/><line class="s" x1="50" y1="82" x2="68" y2="115"/><line class="s" x1="68" y1="115" x2="72" y2="140"/><path class="a" d="M22,110 Q18,115 22,120"/><text x="14" y="115" fill="#4af" font-size="5.5">bent</text><line class="s" x1="50" y1="35" x2="50" y2="82"/><circle cx="50" cy="25" r="10" class="s"/><line class="s" x1="50" y1="50" x2="34" y2="65"/><line class="s" x1="50" y1="50" x2="64" y2="62"/><ellipse cx="68" cy="58" rx="6" ry="8" class="s" transform="rotate(-20,68,58)"/><line class="s" x1="65" y1="64" x2="61" y2="72"/></svg>`,
+    'Backswing': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="142" x2="90" y2="142"/><line class="s" x1="46" y1="82" x2="30" y2="115"/><line class="s" x1="30" y1="115" x2="28" y2="140"/><line class="s" x1="46" y1="82" x2="60" y2="112"/><line class="s" x1="60" y1="112" x2="62" y2="140"/><path class="s" d="M46,35 Q52,58 46,82"/><circle cx="46" cy="25" r="10" class="s"/><line class="s" x1="46" y1="50" x2="30" y2="58"/><line class="s" x1="46" y1="50" x2="72" y2="32"/><ellipse cx="76" cy="26" rx="7" ry="9" class="s" transform="rotate(30,76,26)"/><path class="a" d="M68,58 Q82,40 76,24"/><polygon points="76,21 73,26 79,26" fill="#4af"/><text x="82" y="32" fill="#4af" font-size="5.5">high</text></svg>`,
+    'Contact Point': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="142" x2="90" y2="142"/><line class="s" x1="46" y1="82" x2="32" y2="115"/><line class="s" x1="32" y1="115" x2="30" y2="140"/><line class="s" x1="46" y1="82" x2="62" y2="112"/><line class="s" x1="62" y1="112" x2="66" y2="140"/><line class="s" x1="46" y1="35" x2="46" y2="82"/><circle cx="46" cy="25" r="10" class="s"/><line class="s" x1="46" y1="50" x2="28" y2="62"/><line class="s" x1="46" y1="50" x2="76" y2="62"/><rect x="76" y="54" width="10" height="15" class="s" rx="2"/><circle cx="82" cy="58" r="4" stroke="#f5c842" stroke-width="1.5" fill="rgba(245,200,66,.15)"/><text x="74" y="46" fill="#4af" font-size="5.5">in front</text></svg>`,
+    'Follow-Through': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="142" x2="90" y2="142"/><line class="s" x1="46" y1="82" x2="34" y2="115"/><line class="s" x1="34" y1="115" x2="34" y2="140"/><line class="s" x1="46" y1="82" x2="60" y2="112"/><line class="s" x1="60" y1="112" x2="64" y2="140"/><path class="s" d="M46,35 Q40,58 46,82"/><circle cx="44" cy="25" r="10" class="s"/><line class="s" x1="46" y1="50" x2="62" y2="56"/><line class="s" x1="46" y1="50" x2="28" y2="30"/><ellipse cx="24" cy="24" rx="7" ry="9" class="s" transform="rotate(-40,24,24)"/><path class="a" d="M72,60 Q65,30 26,22"/><polygon points="23,21 26,27 29,21" fill="#4af"/><text x="52" y="28" fill="#4af" font-size="5.5">over shoulder</text></svg>`,
+  },
+  backhand: {
+    'Unit Turn': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="142" x2="90" y2="142"/><line class="s" x1="50" y1="82" x2="35" y2="115"/><line class="s" x1="35" y1="115" x2="33" y2="140"/><line class="s" x1="50" y1="82" x2="65" y2="112"/><line class="s" x1="65" y1="112" x2="67" y2="140"/><path class="s" d="M50,35 Q56,58 50,82"/><circle cx="50" cy="25" r="10" class="s"/><line class="s" x1="50" y1="50" x2="70" y2="42"/><line class="s" x1="50" y1="50" x2="66" y2="58"/><ellipse cx="60" cy="38" rx="8" ry="6" class="s" transform="rotate(40,60,38)"/><path class="a" d="M38,42 Q50,36 60,40"/><text x="34" y="36" fill="#4af" font-size="5.5">turn!</text></svg>`,
+    'Backswing': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="142" x2="90" y2="142"/><line class="s" x1="46" y1="82" x2="30" y2="115"/><line class="s" x1="30" y1="115" x2="28" y2="140"/><line class="s" x1="46" y1="82" x2="60" y2="112"/><line class="s" x1="60" y1="112" x2="62" y2="140"/><line class="s" x1="46" y1="35" x2="46" y2="82"/><circle cx="46" cy="25" r="10" class="s"/><line class="s" x1="46" y1="50" x2="68" y2="40"/><line class="s" x1="68" y1="40" x2="74" y2="30"/><ellipse cx="72" cy="24" rx="8" ry="6" class="s" transform="rotate(-30,72,24)"/><path class="a" d="M60,55 Q74,40 72,22"/><text x="74" y="30" fill="#4af" font-size="5.5">back</text></svg>`,
+    'Contact Point': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="142" x2="90" y2="142"/><line class="s" x1="50" y1="82" x2="35" y2="115"/><line class="s" x1="35" y1="115" x2="33" y2="140"/><line class="s" x1="50" y1="82" x2="65" y2="112"/><line class="s" x1="65" y1="112" x2="67" y2="140"/><line class="s" x1="50" y1="35" x2="50" y2="82"/><circle cx="50" cy="25" r="10" class="s"/><line class="s" x1="50" y1="50" x2="24" y2="60"/><rect x="14" y="54" width="10" height="15" class="s" rx="2"/><circle cx="18" cy="57" r="4" stroke="#f5c842" stroke-width="1.5" fill="rgba(245,200,66,.15)"/><text x="10" y="48" fill="#4af" font-size="5.5">front</text></svg>`,
+    'Follow-Through': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="142" x2="90" y2="142"/><line class="s" x1="50" y1="82" x2="36" y2="115"/><line class="s" x1="36" y1="115" x2="36" y2="140"/><line class="s" x1="50" y1="82" x2="62" y2="112"/><line class="s" x1="62" y1="112" x2="64" y2="140"/><path class="s" d="M50,35 Q44,58 50,82"/><circle cx="50" cy="25" r="10" class="s"/><line class="s" x1="50" y1="50" x2="28" y2="42"/><line class="s" x1="28" y1="42" x2="22" y2="30"/><ellipse cx="24" cy="24" rx="8" ry="6" class="s" transform="rotate(30,24,24)"/><path class="a" d="M40,55 Q26,40 24,22"/><text x="10" y="30" fill="#4af" font-size="5.5">extend</text></svg>`,
+  },
+  serve: {
+    'Trophy Position': `<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="152" x2="90" y2="152"/><line class="s" x1="50" y1="85" x2="38" y2="115"/><line class="s" x1="38" y1="115" x2="35" y2="150"/><line class="s" x1="50" y1="85" x2="62" y2="115"/><line class="s" x1="62" y1="115" x2="65" y2="150"/><line class="s" x1="50" y1="38" x2="50" y2="85"/><circle cx="50" cy="28" r="10" class="s"/><line class="s" x1="50" y1="55" x2="28" y2="42"/><circle cx="26" cy="36" r="3" stroke="#f5c842" stroke-width="1.5" fill="rgba(245,200,66,.15)"/><line class="s" x1="50" y1="55" x2="72" y2="38"/><line class="s" x1="72" y1="38" x2="76" y2="25"/><ellipse cx="74" cy="18" rx="6" ry="8" class="s" transform="rotate(-20,74,18)"/><text x="78" y="22" fill="#4af" font-size="5.5">scratch</text><text x="14" y="34" fill="#4af" font-size="5.5">toss up</text></svg>`,
+    'Ball Toss': `<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="152" x2="90" y2="152"/><line class="s" x1="50" y1="88" x2="37" y2="118"/><line class="s" x1="37" y1="118" x2="34" y2="150"/><line class="s" x1="50" y1="88" x2="63" y2="118"/><line class="s" x1="63" y1="118" x2="66" y2="150"/><line class="s" x1="50" y1="40" x2="50" y2="88"/><circle cx="50" cy="30" r="10" class="s"/><line class="s" x1="50" y1="58" x2="28" y2="30"/><circle cx="28" cy="10" r="5" stroke="#f5c842" stroke-width="2" fill="rgba(245,200,66,.2)"/><path class="a" d="M28,28 L28,14"/><polygon points="28,10 25,16 31,16" fill="#4af"/><line class="s" x1="50" y1="58" x2="70" y2="35"/><ellipse cx="72" cy="24" rx="6" ry="9" class="s" transform="rotate(15,72,24)"/><text x="32" y="9" fill="#4af" font-size="6">toss!</text></svg>`,
+    'Contact': `<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="152" x2="90" y2="152"/><line class="s" x1="50" y1="90" x2="36" y2="120"/><line class="s" x1="36" y1="120" x2="34" y2="150"/><line class="s" x1="50" y1="90" x2="64" y2="118"/><line class="s" x1="64" y1="118" x2="68" y2="150"/><line class="s" x1="50" y1="45" x2="50" y2="90"/><circle cx="50" cy="35" r="10" class="s"/><line class="s" x1="50" y1="60" x2="42" y2="80"/><line class="s" x1="50" y1="60" x2="64" y2="18"/><ellipse cx="64" cy="10" rx="6" ry="9" class="s"/><circle cx="60" cy="10" r="5" stroke="#f5c842" stroke-width="2" fill="rgba(245,200,66,.2)"/><path class="a" d="M60,28 L58,14"/><text x="66" y="8" fill="#4af" font-size="5.5">peak!</text><text x="38" y="92" fill="#4af" font-size="5.5">push up</text></svg>`,
+    'Follow-Through': `<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="152" x2="90" y2="152"/><line class="s" x1="50" y1="88" x2="38" y2="118"/><line class="s" x1="38" y1="118" x2="36" y2="150"/><line class="s" x1="50" y1="88" x2="62" y2="115"/><line class="s" x1="62" y1="115" x2="64" y2="150"/><path class="s" d="M50,40 Q44,64 50,88"/><circle cx="50" cy="30" r="10" class="s"/><line class="s" x1="50" y1="58" x2="30" y2="70"/><line class="s" x1="50" y1="58" x2="36" y2="82"/><path class="a" d="M64,20 Q50,40 34,78"/><polygon points="32,80 36,74 40,80" fill="#4af"/><text x="62" y="18" fill="#4af" font-size="5.5">swing down</text></svg>`,
+  },
+  volley: {
+    'Ready Position': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="142" x2="90" y2="142"/><line class="s" x1="50" y1="80" x2="34" y2="112"/><line class="s" x1="34" y1="112" x2="30" y2="140"/><line class="s" x1="50" y1="80" x2="66" y2="112"/><line class="s" x1="66" y1="112" x2="70" y2="140"/><line class="s" x1="50" y1="35" x2="50" y2="80"/><circle cx="50" cy="25" r="10" class="s"/><line class="s" x1="50" y1="52" x2="32" y2="62"/><line class="s" x1="50" y1="52" x2="68" y2="62"/><ellipse cx="72" cy="58" rx="6" ry="8" class="s" transform="rotate(-10,72,58)"/><text x="36" y="22" fill="#4af" font-size="5.5">racket up!</text><path class="a" d="M50,78 L50,88"/><polygon points="50,92 47,86 53,86" fill="#4af"/><text x="53" y="88" fill="#4af" font-size="5">split</text></svg>`,
+    'Preparation': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="142" x2="90" y2="142"/><line class="s" x1="50" y1="80" x2="36" y2="112"/><line class="s" x1="36" y1="112" x2="33" y2="140"/><line class="s" x1="50" y1="80" x2="64" y2="112"/><line class="s" x1="64" y1="112" x2="66" y2="140"/><line class="s" x1="50" y1="35" x2="50" y2="80"/><circle cx="50" cy="25" r="10" class="s"/><line class="s" x1="50" y1="52" x2="30" y2="58"/><line class="s" x1="50" y1="52" x2="72" y2="45"/><ellipse cx="76" cy="40" rx="6" ry="8" class="s" transform="rotate(20,76,40)"/><path class="a" d="M70,50 Q76,44 76,38"/><text x="78" y="38" fill="#4af" font-size="5.5">small!</text><text x="8" y="55" fill="#4af" font-size="5.5">no big swing</text></svg>`,
+    'Contact': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="142" x2="90" y2="142"/><line class="s" x1="50" y1="80" x2="36" y2="112"/><line class="s" x1="36" y1="112" x2="34" y2="140"/><line class="s" x1="50" y1="80" x2="64" y2="110"/><line class="s" x1="64" y1="110" x2="66" y2="140"/><line class="s" x1="50" y1="35" x2="50" y2="80"/><circle cx="50" cy="25" r="10" class="s"/><line class="s" x1="50" y1="52" x2="30" y2="62"/><line class="s" x1="50" y1="52" x2="76" y2="58"/><rect x="76" y="50" width="10" height="14" class="s" rx="2"/><circle cx="80" cy="53" r="4" stroke="#f5c842" stroke-width="1.5" fill="rgba(245,200,66,.15)"/><path class="a" d="M56,52 L74,56"/><polygon points="76,57 70,53 70,59" fill="#4af"/><text x="52" y="46" fill="#4af" font-size="5.5">punch!</text></svg>`,
+    'Recovery': `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg"><style>.s{stroke:#00c46a;stroke-width:2;fill:none;stroke-linecap:round}.a{stroke:#4af;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-dasharray:4,2}.l{stroke:#333;stroke-width:1}</style><line class="l" x1="10" y1="142" x2="90" y2="142"/><line class="s" x1="50" y1="80" x2="35" y2="110"/><line class="s" x1="35" y1="110" x2="32" y2="140"/><line class="s" x1="50" y1="80" x2="65" y2="110"/><line class="s" x1="65" y1="110" x2="68" y2="140"/><line class="s" x1="50" y1="35" x2="50" y2="80"/><circle cx="50" cy="25" r="10" class="s"/><line class="s" x1="50" y1="52" x2="33" y2="62"/><line class="s" x1="50" y1="52" x2="67" y2="62"/><ellipse cx="70" cy="58" rx="6" ry="8" class="s" transform="rotate(-10,70,58)"/><path class="a" d="M50,82 Q40,90 50,95 Q60,90 50,82"/><text x="52" y="95" fill="#4af" font-size="5.5">reset!</text></svg>`,
+  },
+};
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let selectedShot = 'forehand';
 let videoBlob = null;
 let cameraStream = null;
 let mediaRecorder = null;
@@ -423,459 +487,392 @@ let recordedChunks = [];
 let extractedFrames = [];
 let recordTimer = null;
 let recSeconds = 0;
-let firstAnalysisData = null;      // saved after session 1
-let firstExtractedFrames = [];     // frames from session 1
-let isFollowUp = false;            // true when recording 2nd swing
+let firstAnalysisData = null;
+let firstExtractedFrames = [];
+let isFollowUp = false;
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
+const showEl = id => $(id).style.display = 'block';
+const hideEl = id => $(id).style.display = 'none';
 
-function showEl(id)  { $(id).style.display = 'block'; }
-function hideEl(id)  { $(id).style.display = 'none'; }
+// ══════════════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════════════
+function showTab(tab) {
+  hideEl('tab-analyze'); hideEl('tab-history');
+  $('btn-analyze-tab').classList.remove('active');
+  $('btn-history-tab').classList.remove('active');
+  showEl('tab-' + tab);
+  $('btn-' + tab + '-tab').classList.add('active');
+  if (tab === 'history') renderHistory();
+}
+// Init tab
+$('btn-analyze-tab').classList.add('active');
 
-// ─── File upload ──────────────────────────────────────────────────────────────
-$('file-input').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  loadVideo(file);
-});
+// ══════════════════════════════════════════════════════════════
+// SHOT SELECTOR
+// ══════════════════════════════════════════════════════════════
+function selectShot(shot) {
+  selectedShot = shot;
+  document.querySelectorAll('.shot-btn').forEach(b => b.classList.remove('selected'));
+  $('shot-' + shot).classList.add('selected');
+  updateFrameLabels();
+}
+
+function updateFrameLabels() {
+  const phases = SHOT_CONFIG[selectedShot].phases;
+  const shortLabels = { forehand:['Stance','Backswing','Contact','Follow'], backhand:['Unit Turn','Backswing','Contact','Follow'], serve:['Trophy','Toss','Contact','Follow'], volley:['Ready','Prep','Contact','Reset'] };
+  const labels = shortLabels[selectedShot];
+  ['ft0','ft1','ft2','ft3'].forEach((id,i) => {
+    const lbl = $(id).querySelector('.ft-label');
+    if (lbl) lbl.textContent = labels[i];
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// VIDEO LOAD
+// ══════════════════════════════════════════════════════════════
+$('file-input').addEventListener('change', e => { const f = e.target.files[0]; if (f) loadVideo(f); });
 
 function loadVideo(blob) {
   videoBlob = blob;
   const video = $('video-preview');
   const url = URL.createObjectURL(blob);
-
-  hideEl('input-section');
-  hideEl('camera-section');
-  showEl('preview-section');
-  hideResults();
-  hideError();
+  hideEl('input-section'); hideEl('camera-section');
+  showEl('preview-section'); hideResults(); hideError();
   resetFrameThumbs();
   $('analyze-btn').disabled = true;
-
-  // Listener BEFORE src to avoid race condition
   video.addEventListener('loadedmetadata', onVideoMetaReady, { once: true });
   video.src = url;
-  video.load(); // force iOS to start loading
+  video.load();
 }
 
 async function onVideoMetaReady() {
   const video = $('video-preview');
   let duration = video.duration;
-
-  // iOS MediaRecorder bug: recorded video reports duration = Infinity
-  if (!isFinite(duration)) {
-    duration = await fixInfinityDuration(video);
-  }
-
-  if (!isFinite(duration) || duration <= 0) {
-    // Give up on frames, just enable button
-    $('analyze-btn').disabled = false;
-    return;
-  }
-
+  if (!isFinite(duration)) duration = await fixInfinityDuration(video);
+  if (!isFinite(duration) || duration <= 0) { $('analyze-btn').disabled = false; return; }
   await extractFrames(duration);
 }
 
 function fixInfinityDuration(video) {
   return new Promise(resolve => {
-    const onDuration = () => {
-      if (isFinite(video.duration)) {
-        video.removeEventListener('durationchange', onDuration);
-        resolve(video.duration);
-      }
-    };
-    video.addEventListener('durationchange', onDuration);
-    video.currentTime = 1e10; // seeking past end triggers correct durationchange
-    setTimeout(() => { video.removeEventListener('durationchange', onDuration); resolve(5); }, 4000);
+    const onDur = () => { if (isFinite(video.duration)) { video.removeEventListener('durationchange', onDur); resolve(video.duration); } };
+    video.addEventListener('durationchange', onDur);
+    video.currentTime = 1e10;
+    setTimeout(() => { video.removeEventListener('durationchange', onDur); resolve(5); }, 4000);
   });
 }
 
-// ─── Camera ───────────────────────────────────────────────────────────────────
-async function startCamera() {
-  try {
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: false,
-    });
-    $('camera-stream').srcObject = cameraStream;
-    hideEl('input-section');
-    showEl('camera-section');
-    hideResults();
-    hideError();
-  } catch (err) {
-    showError('Camera access denied. Please allow camera in settings.');
-  }
-}
-
-function closeCamera() {
-  stopStream();
-  hideEl('camera-section');
-  showEl('input-section');
-}
-
-function stopStream() {
-  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
-}
-
-// ─── Recording ────────────────────────────────────────────────────────────────
-function startRecording() {
-  // Countdown 3-2-1 then record
-  let count = 3;
-  $('countdown-num').textContent = count;
-  $('countdown-overlay').classList.add('show');
-  $('countdown-label').textContent = 'Get ready…';
-
-  const tick = setInterval(() => {
-    count--;
-    if (count > 0) {
-      $('countdown-num').textContent = count;
-    } else {
-      clearInterval(tick);
-      $('countdown-overlay').classList.remove('show');
-      doRecord();
-    }
-  }, 1000);
-}
-
-function doRecord() {
-  recordedChunks = [];
-  const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4'
-    : MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9'
-    : 'video/webm';
-
-  mediaRecorder = new MediaRecorder(cameraStream, { mimeType });
-  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-  mediaRecorder.onstop = () => {
-    const blob = new Blob(recordedChunks, { type: mimeType });
-    stopStream();
-    hideEl('camera-section');
-    loadVideo(blob);
-  };
-
-  mediaRecorder.start(100);
-
-  // UI
-  $('rec-dot').classList.remove('idle');
-  $('rec-start-btn').style.display = 'none';
-  $('rec-stop-btn').style.display = 'flex';
-  recSeconds = 0;
-  updateRecTimer();
-  recordTimer = setInterval(() => {
-    recSeconds++;
-    updateRecTimer();
-    if (recSeconds >= 5) stopRecording();
-  }, 1000);
-}
-
-function updateRecTimer() {
-  $('rec-timer').textContent = `Recording… ${recSeconds}s / 5s`;
-  $('rec-hint').textContent = 'Tap Stop when done';
-}
-
-function stopRecording() {
-  clearInterval(recordTimer);
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-  $('rec-dot').classList.add('idle');
-  $('rec-timer').textContent = 'Processing…';
-  $('rec-start-btn').style.display = 'flex';
-  $('rec-stop-btn').style.display = 'none';
-}
-
-// ─── Frame extraction ─────────────────────────────────────────────────────────
 function resetFrameThumbs() {
   extractedFrames = [];
-  ['ft0','ft1','ft2','ft3'].forEach(id => {
-    $(id).innerHTML = `<div class="ft-loading">⏳</div><div class="ft-label">${$(id).querySelector('.ft-label')?.textContent || ''}</div>`;
-  });
-  const labels = ['Stance','Backswing','Contact','Follow'];
+  const shortLabels = { forehand:['Stance','Backswing','Contact','Follow'], backhand:['Unit Turn','Backswing','Contact','Follow'], serve:['Trophy','Toss','Contact','Follow'], volley:['Ready','Prep','Contact','Reset'] };
+  const labels = shortLabels[selectedShot] || ['1','2','3','4'];
   ['ft0','ft1','ft2','ft3'].forEach((id,i) => {
-    $(id).querySelector('.ft-label').textContent = labels[i];
+    $(id).innerHTML = `<div class="ft-loading">⏳</div><div class="ft-label">${labels[i]}</div>`;
   });
 }
 
 async function extractFrames(duration) {
   const video = $('video-preview');
   if (!duration || !isFinite(duration)) return;
-
-  // Extract at 15%, 35%, 60%, 82% of video
   const positions = [0.15, 0.35, 0.60, 0.82];
-  const thumbIds  = ['ft0','ft1','ft2','ft3'];
-  extractedFrames = [];
-
+  const labels = { forehand:['Stance','Backswing','Contact','Follow'], backhand:['Unit Turn','Backswing','Contact','Follow'], serve:['Trophy','Toss','Contact','Follow'], volley:['Ready','Prep','Contact','Reset'] }[selectedShot];
   for (let i = 0; i < 4; i++) {
     try {
       const frame = await captureFrameAt(video, duration * positions[i]);
       extractedFrames.push(frame);
-      // Show thumbnail
-      const thumb = $(thumbIds[i]);
+      const thumb = $('ft'+i);
       const img = document.createElement('img');
       img.src = 'data:image/jpeg;base64,' + frame;
-      const lbl = thumb.querySelector('.ft-label').textContent;
       thumb.innerHTML = '';
       thumb.appendChild(img);
-      const lDiv = document.createElement('div');
-      lDiv.className = 'ft-label'; lDiv.textContent = lbl;
+      const lDiv = document.createElement('div'); lDiv.className = 'ft-label'; lDiv.textContent = labels[i];
       thumb.appendChild(lDiv);
-    } catch (e) {
-      console.warn('Frame extract failed at position', i, e);
-    }
+    } catch(e) { console.warn('Frame extract fail', i, e); }
   }
-
-  // Enable button with whatever we got (even 1 frame)
-  if (extractedFrames.length >= 1) {
-    $('analyze-btn').disabled = false;
-  }
+  if (extractedFrames.length >= 1) $('analyze-btn').disabled = false;
 }
 
 function captureFrameAt(video, time) {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      video.removeEventListener('seeked', onSeeked);
-      reject(new Error('Seek timeout'));
-    }, 6000);
-
+    const timer = setTimeout(() => { video.removeEventListener('seeked', onSeeked); reject(new Error('Seek timeout')); }, 6000);
     const onSeeked = () => {
       clearTimeout(timer);
       try {
         const canvas = document.createElement('canvas');
-        const maxW = 480;
-        const scale = Math.min(1, maxW / (video.videoWidth || 480));
-        canvas.width  = Math.round((video.videoWidth  || 480) * scale);
-        canvas.height = Math.round((video.videoHeight || 270) * scale);
+        const maxW = 480, scale = Math.min(1, maxW / (video.videoWidth || 480));
+        canvas.width = Math.round((video.videoWidth||480)*scale);
+        canvas.height = Math.round((video.videoHeight||270)*scale);
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         resolve(canvas.toDataURL('image/jpeg', 0.65).split(',')[1]);
-      } catch (e) { clearTimeout(timer); reject(e); }
+      } catch(e) { clearTimeout(timer); reject(e); }
     };
-
     video.addEventListener('seeked', onSeeked, { once: true });
     video.currentTime = time;
   });
 }
 
-// ─── Analyze ──────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// CAMERA
+// ══════════════════════════════════════════════════════════════
+async function startCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}},audio:false });
+    $('camera-stream').srcObject = cameraStream;
+    hideEl('input-section'); showEl('camera-section'); hideResults(); hideError();
+  } catch(e) { showError('Camera access denied.'); }
+}
+function closeCamera() { stopStream(); hideEl('camera-section'); showEl('input-section'); }
+function stopStream() { if (cameraStream) { cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; } }
+
+function startRecording() {
+  let count = 3;
+  $('countdown-num').textContent = count;
+  $('countdown-overlay').classList.add('show');
+  const tick = setInterval(() => {
+    count--;
+    if (count > 0) { $('countdown-num').textContent = count; }
+    else { clearInterval(tick); $('countdown-overlay').classList.remove('show'); doRecord(); }
+  }, 1000);
+}
+
+function doRecord() {
+  recordedChunks = [];
+  const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4'
+    : MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+  mediaRecorder = new MediaRecorder(cameraStream, { mimeType });
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+  mediaRecorder.onstop = () => { const blob = new Blob(recordedChunks,{type:mimeType}); stopStream(); hideEl('camera-section'); loadVideo(blob); };
+  mediaRecorder.start(100);
+  $('rec-dot').classList.remove('idle');
+  $('rec-start-btn').style.display = 'none';
+  $('rec-stop-btn').style.display = 'flex';
+  recSeconds = 0;
+  $('rec-timer').textContent = 'Recording… 0s / 5s';
+  recordTimer = setInterval(() => { recSeconds++; $('rec-timer').textContent=`Recording… ${recSeconds}s / 5s`; if(recSeconds>=5) stopRecording(); }, 1000);
+}
+
+function stopRecording() {
+  clearInterval(recordTimer);
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  $('rec-dot').classList.add('idle'); $('rec-timer').textContent='Processing…';
+  $('rec-start-btn').style.display='flex'; $('rec-stop-btn').style.display='none';
+}
+
+// ══════════════════════════════════════════════════════════════
+// ANALYZE
+// ══════════════════════════════════════════════════════════════
 async function analyzeSwing() {
   if (!extractedFrames.length) return;
-  showLoading();
-  hideResults();
-  hideError();
-
+  $('loading-shot').textContent = SHOT_CONFIG[selectedShot].label;
+  showEl('loading'); hideResults(); hideError();
   try {
     const res = await fetch('/api/analyze', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ frames: extractedFrames, mediaType: 'image/jpeg' }),
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ frames: extractedFrames, mediaType: 'image/jpeg', shotType: selectedShot }),
     });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || `Server error ${res.status}`);
-    }
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || `Error ${res.status}`); }
     const data = await res.json();
-    hideLoading();
-    if (isFollowUp && firstAnalysisData) {
-      showComparison(firstAnalysisData, data);
-    } else {
-      showResults(data);
-    }
-  } catch (err) {
-    hideLoading();
-    showError(err.message || 'Analysis failed. Please try again.');
-  }
+    hideEl('loading');
+    if (isFollowUp && firstAnalysisData) showComparison(firstAnalysisData, data);
+    else showResults(data);
+  } catch(err) { hideEl('loading'); showError(err.message || 'Analysis failed.'); }
 }
 
-// ─── Show results ─────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// SHOW RESULTS
+// ══════════════════════════════════════════════════════════════
 function showResults(data) {
+  const shot = data.shotType || selectedShot;
+  const cfg = SHOT_CONFIG[shot] || SHOT_CONFIG.forehand;
   const score = data.overall_score ?? data.score ?? 0;
+
+  $('result-shot-pill').textContent = cfg.icon + ' ' + cfg.label;
   $('score-value').textContent = score;
   const ring = $('score-ring');
-  ring.className = 'score-ring';
-  let label = 'Needs Work';
-  if (score >= 80) { ring.classList.add('great'); label = 'Excellent Form'; }
-  else if (score >= 60) { ring.classList.add('good'); label = 'Good Swing'; }
-  else { ring.classList.add('fair'); }
-  $('overall-label').textContent = label;
+  ring.className = 'score-ring ' + (score>=80?'great':score>=60?'good':'fair');
+  $('overall-label').textContent = score>=80?'Excellent Form':score>=60?'Good Swing':'Needs Work';
+
+  // Topspin section (forehand only)
+  if (shot === 'forehand' && data.topspin) {
+    const ts = data.topspin;
+    const col = v => v>=75?'#00c46a':v>=55?'#f5c842':'#ff8c42';
+    $('ts-score').textContent = ts.score ?? '--';
+    ['path','contact','brush','follow'].forEach((k,i) => {
+      const keys = ['swing_path','contact_height','brush_angle','follow_through_height'];
+      const v = ts[keys[i]] ?? 0;
+      $(`ts-${k}-bar`).style.cssText = `width:${v}%;background:${col(v)}`;
+      $(`ts-${k}`).textContent = v;
+      $(`ts-${k}`).style.color = col(v);
+    });
+    showEl('topspin-section');
+  } else { hideEl('topspin-section'); }
 
   // Phase cards
-  const phases = data.phases || [];
   const container = $('phases-container');
   container.innerHTML = '';
-
-  const phaseOrder = ['Stance','Backswing','Contact Point','Follow-Through'];
-
-  phaseOrder.forEach((phaseName, idx) => {
-    const phase = phases.find(p => p.name === phaseName) || phases[idx] || {};
+  cfg.phases.forEach((phaseName, idx) => {
+    const phase = (data.phases||[]).find(p=>p.name===phaseName) || (data.phases||[])[idx] || {};
     const s = phase.score || 0;
-    const badgeCls = s >= 80 ? 'great' : s >= 60 ? 'good' : 'fair';
+    const bCls = s>=80?'great':s>=60?'good':'fair';
     const frame = extractedFrames[idx];
-    const refSvg = REF_SVGS[phaseName] || '';
-
-    const issues = phase.issues || [];
-    const issuesHtml = issues.length
-      ? issues.map(i => `<div class="phase-issue"><div class="phase-issue-dot"></div>${i}</div>`).join('')
-      : `<div class="phase-good">✓ Looks good</div>`;
-
+    const refSvg = (REF_SVGS[shot]||REF_SVGS.forehand)[phaseName] || '';
+    const issuesHtml = (phase.issues||[]).length
+      ? phase.issues.map(i=>`<div class="phase-issue"><div class="phase-issue-dot"></div>${i}</div>`).join('')
+      : `<div class="phase-good">✓ Good form</div>`;
     const card = document.createElement('div');
     card.className = 'phase-card';
     card.innerHTML = `
       <div class="phase-header">
-        <div class="phase-name">${phaseIcons[phaseName] || ''} ${phaseName}</div>
-        <div class="phase-badge ${badgeCls}">${s}/100</div>
+        <div class="phase-name">${PHASE_ICONS[phaseName]||''} ${phaseName}</div>
+        <div class="phase-badge ${bCls}">${s}/100</div>
       </div>
       <div class="comparison">
-        <div class="cmp-box">
-          <div class="cmp-label">Your Form</div>
-          <div class="cmp-frame">${frame ? `<img src="data:image/jpeg;base64,${frame}" alt="${phaseName}"/>` : '<div style="height:80px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;">No frame</div>'}</div>
-        </div>
-        <div class="cmp-box">
-          <div class="cmp-label">Ideal Form</div>
-          <div class="cmp-svg">${refSvg}</div>
-        </div>
+        <div class="cmp-box"><div class="cmp-label">Your Form</div><div class="cmp-frame">${frame?`<img src="data:image/jpeg;base64,${frame}"/>`:'<div style="height:70px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px">No frame</div>'}</div></div>
+        <div class="cmp-box"><div class="cmp-label">Ideal Form</div><div class="cmp-svg">${refSvg}</div></div>
       </div>
       <div class="phase-issues">${issuesHtml}</div>
-      ${phase.tip ? `<div class="phase-tip"><div class="phase-tip-label">💡 Fix</div>${phase.tip}</div>` : ''}
+      ${phase.tip?`<div class="phase-tip"><div class="phase-tip-label">💡 Fix</div>${phase.tip}</div>`:''}
     `;
     container.appendChild(card);
   });
 
-  $('coaching-text').textContent = data.coaching || 'Keep practicing — consistency is key!';
-
-  // Store for potential follow-up comparison
-  firstAnalysisData = data;
-  firstExtractedFrames = [...extractedFrames];
-
-  // Show follow-up CTA
-  showEl('followup-cta');
-
-  showEl('result-section');
-  setTimeout(() => $('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-}
-
-const phaseIcons = { 'Stance': '🦵', 'Backswing': '↩️', 'Contact Point': '🎾', 'Follow-Through': '↪️' };
-
-// ─── Follow-up ────────────────────────────────────────────────────────────────
-function startFollowUp() {
-  isFollowUp = true;
-  // Hide results but keep first data saved
-  hideEl('result-section');
-  hideEl('comparison-section');
-  hideEl('error-msg');
-  showEl('input-section');
-  videoBlob = null; extractedFrames = [];
-  $('video-preview').src = '';
-  $('file-input').value = '';
-}
-
-// ─── Show comparison ──────────────────────────────────────────────────────────
-function showComparison(d1, d2) {
-  const s1 = d1.overall_score ?? d1.score ?? 0;
-  const s2 = d2.overall_score ?? d2.score ?? 0;
-  const diff = s2 - s1;
-
-  $('cmp-score1').textContent = s1;
-  $('cmp-score2').textContent = s2;
-
-  const deltaBadge = $('cmp-delta');
-  if (diff > 0) {
-    deltaBadge.textContent = `▲ +${diff}`;
-    deltaBadge.className = 'delta-badge delta-up';
-    $('cmp-verdict').textContent = diff >= 10 ? '🔥 Big improvement! Keep it up!' : '✅ You improved!';
-  } else if (diff < 0) {
-    deltaBadge.textContent = `▼ ${diff}`;
-    deltaBadge.className = 'delta-badge delta-down';
-    $('cmp-verdict').textContent = 'Keep practicing — it takes time to build muscle memory.';
+  // Drill recommendations
+  const drillsDb = DRILLS_DB[shot] || {};
+  const weakPhases = cfg.phases
+    .map((name,i) => ({ name, score: ((data.phases||[])[i]||{}).score||0 }))
+    .filter(p => p.score < 75)
+    .sort((a,b) => a.score - b.score)
+    .slice(0, 2);
+  const drills = [];
+  // Add topspin drill if topspin score is low
+  if (shot==='forehand' && data.topspin && data.topspin.score < 70) drills.push(...(drillsDb.topspin||[]));
+  weakPhases.forEach(p => drills.push(...(drillsDb[p.name]||[])));
+  const drillsList = $('drills-list');
+  if (drills.length) {
+    drillsList.innerHTML = drills.slice(0,3).map((d,i)=>`
+      <div class="drill-item">
+        <div class="drill-num">${i+1}</div>
+        <div><div class="drill-name">${d.name}</div><div class="drill-desc">${d.desc}</div></div>
+      </div>`).join('');
+    showEl('drills-card');
   } else {
-    deltaBadge.textContent = `= ${s2}`;
-    deltaBadge.className = 'delta-badge delta-same';
-    $('cmp-verdict').textContent = 'Consistent score — focus on the tips below.';
+    $('drills-list').innerHTML = '<div style="font-size:12px;color:var(--muted)">Great technique — no drills needed right now!</div>';
+    showEl('drills-card');
   }
 
-  // Phase table
-  const phaseOrder = ['Stance','Backswing','Contact Point','Follow-Through'];
+  $('coaching-text').textContent = data.coaching || 'Keep practicing!';
+
+  // Save to history
+  saveHistory({ shotType: shot, score, label: cfg.label, icon: cfg.icon, phases: data.phases });
+
+  // Store for follow-up
+  firstAnalysisData = data; firstExtractedFrames = [...extractedFrames]; isFollowUp = false;
+  showEl('followup-cta');
+  showEl('result-section');
+  hideEl('comparison-section');
+  setTimeout(() => $('result-section').scrollIntoView({behavior:'smooth',block:'start'}), 100);
+}
+
+// ══════════════════════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════════════════════
+function saveHistory(entry) {
+  try {
+    const h = JSON.parse(localStorage.getItem('swingiq_history') || '[]');
+    h.unshift({ ...entry, date: new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) });
+    h.splice(20);
+    localStorage.setItem('swingiq_history', JSON.stringify(h));
+  } catch(e) {}
+}
+
+function renderHistory() {
+  const list = $('history-list');
+  try {
+    const h = JSON.parse(localStorage.getItem('swingiq_history') || '[]');
+    if (!h.length) { list.innerHTML = '<div class="history-empty">No sessions yet.<br>Analyze your first swing!</div>'; return; }
+    list.innerHTML = h.map(s => `
+      <div class="history-item">
+        <div class="hi-shot">${s.icon||'🎾'}</div>
+        <div class="hi-info"><div class="hi-name">${s.label||'Swing'}</div><div class="hi-date">${s.date||''}</div></div>
+        <div class="hi-score">${s.score}</div>
+      </div>`).join('');
+  } catch(e) { list.innerHTML = '<div class="history-empty">Could not load history.</div>'; }
+}
+
+// ══════════════════════════════════════════════════════════════
+// FOLLOW-UP & COMPARISON
+// ══════════════════════════════════════════════════════════════
+function startFollowUp() {
+  isFollowUp = true;
+  hideEl('result-section'); hideEl('comparison-section'); hideEl('error-msg');
+  showEl('input-section'); showEl('shot-section');
+  videoBlob = null; extractedFrames = [];
+  $('video-preview').src = ''; $('file-input').value = '';
+}
+
+function showComparison(d1, d2) {
+  const s1 = d1.overall_score??d1.score??0, s2 = d2.overall_score??d2.score??0, diff = s2-s1;
+  $('cmp-score1').textContent = s1; $('cmp-score2').textContent = s2;
+  const db = $('cmp-delta');
+  if (diff>0) { db.textContent=`▲ +${diff}`; db.className='delta-badge delta-up'; $('cmp-verdict').textContent=diff>=10?'🔥 Big improvement!':'✅ You improved!'; }
+  else if (diff<0) { db.textContent=`▼ ${diff}`; db.className='delta-badge delta-down'; $('cmp-verdict').textContent='Keep going — muscle memory takes time.'; }
+  else { db.textContent=`= ${s2}`; db.className='delta-badge delta-same'; $('cmp-verdict').textContent='Consistent score — focus on the tips.'; }
+
+  const cfg = SHOT_CONFIG[d2.shotType||selectedShot]||SHOT_CONFIG.forehand;
   const tbody = $('cmp-phase-rows');
   tbody.innerHTML = '';
-  phaseOrder.forEach(name => {
-    const p1 = (d1.phases || []).find(p => p.name === name) || {};
-    const p2 = (d2.phases || []).find(p => p.name === name) || {};
-    const ps1 = p1.score || 0, ps2 = p2.score || 0, pd = ps2 - ps1;
-    const cls = pd > 0 ? 'td-delta-up' : pd < 0 ? 'td-delta-down' : 'td-delta-same';
-    const icon = pd > 0 ? '▲' : pd < 0 ? '▼' : '=';
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${phaseIcons[name] || ''} ${name}</td>
-      <td>${ps1}</td>
-      <td>${ps2}</td>
-      <td class="${cls}">${icon}${pd > 0 ? '+' : ''}${pd}</td>
-    `;
+  cfg.phases.forEach(name => {
+    const p1=(d1.phases||[]).find(p=>p.name===name)||{}, p2=(d2.phases||[]).find(p=>p.name===name)||{};
+    const ps1=p1.score||0, ps2=p2.score||0, pd=ps2-ps1;
+    const cls=pd>0?'td-up':pd<0?'td-down':'td-same';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${PHASE_ICONS[name]||''} ${name}</td><td>${ps1}</td><td>${ps2}</td><td class="${cls}">${pd>0?'▲+':''}${pd<0?'▼':pd===0?'=':''}${pd!==0?Math.abs(pd):''}</td>`;
     tbody.appendChild(tr);
   });
 
-  // Collect all issues from both sessions
-  const allIssues1 = (d1.phases || []).flatMap(p => p.issues || []);
-  const allIssues2 = (d2.phases || []).flatMap(p => p.issues || []);
+  const issues1=(d1.phases||[]).flatMap(p=>p.issues||[]);
+  const issues2=(d2.phases||[]).flatMap(p=>p.issues||[]);
+  const fixed=issues1.filter(i=>!issues2.some(j=>issuesSimilar(i,j)));
+  const remaining=issues2.filter(i=>issues1.some(j=>issuesSimilar(i,j)));
+  $('cmp-fixed-list').innerHTML=fixed.length?fixed.map(i=>`<div class="fixed-item"><span>✓</span><span>${i}</span></div>`).join(''):'<div class="issue-none">No issues clearly resolved yet — keep going!</div>';
+  $('cmp-remain-list').innerHTML=remaining.length?remaining.map(i=>`<div class="remain-item"><span>○</span><span>${i}</span></div>`).join(''):'<div class="issue-none">No recurring issues — great consistency!</div>';
 
-  const fixed    = allIssues1.filter(i => !allIssues2.some(j => issuesSimilar(i, j)));
-  const remaining = allIssues2.filter(i => allIssues1.some(j => issuesSimilar(i, j)));
-  const newIssues = allIssues2.filter(i => !allIssues1.some(j => issuesSimilar(i, j)));
+  const notes=[];
+  if(diff>0) notes.push(`Score improved by ${diff} points.`);
+  else if(diff<0) notes.push(`Score dipped by ${Math.abs(diff)} — normal during technique changes.`);
+  if(fixed.length) notes.push(`Fixed ${fixed.length} issue${fixed.length>1?'s':''} — excellent!`);
+  if(remaining.length) notes.push(`Next focus: ${remaining[0]}.`);
+  if(d2.coaching) notes.push(d2.coaching);
+  $('cmp-coaching').textContent=notes.join(' ');
 
-  // Fixed issues
-  const fixedList = $('cmp-fixed-list');
-  fixedList.innerHTML = fixed.length
-    ? fixed.map(i => `<div class="fixed-item"><span>✓</span><span>${i}</span></div>`).join('')
-    : `<div class="issue-none">No issues clearly resolved yet — keep practicing!</div>`;
-
-  // Remaining + new issues
-  const remainList = $('cmp-remain-list');
-  const combinedRemain = [...remaining, ...newIssues.map(i => `${i} ★ new`)];
-  remainList.innerHTML = combinedRemain.length
-    ? remaining.map(i => `<div class="remain-item"><span>○</span><span>${i}</span></div>`).join('') +
-      newIssues.map(i => `<div class="new-item"><span>!</span><span>${i}</span></div>`).join('')
-    : `<div class="issue-none">No recurring issues detected — great consistency!</div>`;
-
-  // Coaching summary
-  const coachingParts = [];
-  if (diff > 0) coachingParts.push(`Your overall score improved by ${diff} points — great progress.`);
-  else if (diff < 0) coachingParts.push(`Your score dipped by ${Math.abs(diff)} points — that's normal, keep going.`);
-  else coachingParts.push(`Your score stayed consistent at ${s2}.`);
-  if (fixed.length) coachingParts.push(`You fixed ${fixed.length} issue${fixed.length > 1 ? 's' : ''} from last session — excellent.`);
-  if (remaining.length) coachingParts.push(`Focus next on: ${remaining[0]}.`);
-  if (d2.coaching) coachingParts.push(d2.coaching);
-  $('cmp-coaching').textContent = coachingParts.join(' ');
-
-  // Reset follow-up state and show comparison
-  isFollowUp = false;
-  hideEl('result-section');
-  showEl('comparison-section');
-  setTimeout(() => $('comparison-section').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  saveHistory({ shotType:d2.shotType||selectedShot, score:s2, label:cfg.label, icon:cfg.icon, phases:d2.phases });
+  isFollowUp=false; firstAnalysisData=null;
+  hideEl('result-section'); showEl('comparison-section');
+  setTimeout(()=>$('comparison-section').scrollIntoView({behavior:'smooth',block:'start'}),100);
 }
 
-function issuesSimilar(a, b) {
-  const words = s => s.toLowerCase().split(/\W+/).filter(w => w.length > 3);
-  const wb = new Set(words(b));
-  return words(a).some(w => wb.has(w));
+function issuesSimilar(a,b) {
+  const w=s=>s.toLowerCase().split(/\W+/).filter(x=>x.length>3);
+  const wb=new Set(w(b)); return w(a).some(x=>wb.has(x));
 }
 
-// ─── UI helpers ───────────────────────────────────────────────────────────────
-function showLoading() { showEl('loading'); }
-function hideLoading() { hideEl('loading'); }
-function hideResults()  { hideEl('result-section'); }
-function showError(msg) { $('error-msg').textContent = '❌ ' + msg; showEl('error-msg'); }
-function hideError()    { hideEl('error-msg'); }
+// ══════════════════════════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════════════════════════
+function hideResults() { hideEl('result-section'); hideEl('comparison-section'); }
+function showError(msg) { $('error-msg').textContent='❌ '+msg; showEl('error-msg'); }
+function hideError() { hideEl('error-msg'); }
 
 function resetAll() {
-  videoBlob = null; extractedFrames = [];
-  firstAnalysisData = null; firstExtractedFrames = [];
-  isFollowUp = false;
-  $('video-preview').src = '';
-  $('file-input').value = '';
-  hideEl('preview-section');
-  hideEl('loading');
-  hideEl('result-section');
-  hideEl('comparison-section');
-  hideEl('followup-cta');
-  hideEl('error-msg');
-  showEl('input-section');
-  stopStream();
-  hideEl('camera-section');
+  videoBlob=null; extractedFrames=[]; firstAnalysisData=null; firstExtractedFrames=[]; isFollowUp=false;
+  $('video-preview').src=''; $('file-input').value='';
+  hideEl('preview-section'); hideEl('loading'); hideEl('result-section');
+  hideEl('comparison-section'); hideEl('followup-cta'); hideEl('error-msg');
+  showEl('input-section'); showEl('shot-section');
+  stopStream(); hideEl('camera-section');
 }
 </script>
 </body>
