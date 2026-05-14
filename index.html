@@ -141,6 +141,47 @@
     .coaching-text { font-size: 14px; line-height: 1.6; }
 
     .try-again { margin-top: 4px; }
+
+    /* ── Follow-up CTA ── */
+    .followup-cta { background: linear-gradient(135deg,#0d1a2a,#0a1020); border: 1px solid #1a2a40; border-radius: 16px; padding: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 14px; }
+    .followup-cta .fc-icon { font-size: 28px; flex-shrink: 0; }
+    .followup-cta h3 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .followup-cta p { font-size: 12px; color: var(--muted); }
+    .btn-followup { margin-top: 10px; background: #1a3a5c; color: #7dc8ff; border: 1px solid #2a4a6c; border-radius: 12px; padding: 10px 16px; font-size: 13px; font-weight: 600; width: 100%; cursor: pointer; }
+    .btn-followup:active { opacity: .7; }
+
+    /* ── Comparison / Progress Report ── */
+    #comparison-section { display: none; margin-top: 20px; }
+    .progress-header { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 14px; }
+    .progress-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+    .scores-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 14px; }
+    .sess-score { text-align: center; }
+    .sess-num { font-size: 36px; font-weight: 800; }
+    .sess-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .arrow-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .arrow-line { font-size: 22px; color: var(--muted); }
+    .delta-badge { padding: 5px 12px; border-radius: 20px; font-size: 15px; font-weight: 800; }
+    .delta-up   { background: rgba(0,196,106,.15); color: var(--green); }
+    .delta-down { background: rgba(255,80,80,.15);  color: #ff6b6b; }
+    .delta-same { background: rgba(150,150,150,.15); color: var(--muted); }
+    .verdict    { font-size: 13px; color: var(--muted); text-align: center; }
+
+    /* Phase comparison table */
+    .phase-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+    .phase-table th { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; padding: 4px 6px; text-align: left; }
+    .phase-table td { font-size: 13px; padding: 7px 6px; border-top: 1px solid var(--border); }
+    .phase-table td:last-child { text-align: right; }
+    .td-delta-up   { color: var(--green); font-weight: 700; }
+    .td-delta-down { color: #ff6b6b; font-weight: 700; }
+    .td-delta-same { color: var(--muted); }
+
+    /* Fixed / remaining issues */
+    .issue-section { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+    .issue-sec-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+    .fixed-item   { display: flex; gap: 8px; font-size: 13px; color: #b8f0d0; margin-bottom: 6px; line-height: 1.4; }
+    .remain-item  { display: flex; gap: 8px; font-size: 13px; color: #ffcba0; margin-bottom: 6px; line-height: 1.4; }
+    .new-item     { display: flex; gap: 8px; font-size: 13px; color: #ffa0a0; margin-bottom: 6px; line-height: 1.4; }
+    .issue-none   { font-size: 13px; color: var(--muted); font-style: italic; }
   </style>
 </head>
 <body>
@@ -236,8 +277,65 @@
       <div class="coaching-text" id="coaching-text">--</div>
     </div>
 
+    <!-- Follow-up CTA (shown after first analysis) -->
+    <div class="followup-cta" id="followup-cta" style="display:none">
+      <div class="fc-icon">📈</div>
+      <div style="flex:1">
+        <h3>Did you improve?</h3>
+        <p>Record a follow-up swing to see your progress</p>
+        <button class="btn-followup" onclick="startFollowUp()">🎾 Record Follow-up Swing</button>
+      </div>
+    </div>
+
     <div class="try-again">
       <button class="btn btn-secondary" onclick="resetAll()">↩ Analyze Another Swing</button>
+    </div>
+  </div>
+
+  <!-- Comparison / Progress Report (shown after follow-up) -->
+  <div id="comparison-section">
+    <div class="progress-header">
+      <div class="progress-title">📊 Progress Report</div>
+      <div class="scores-row">
+        <div class="sess-score">
+          <div class="sess-num" id="cmp-score1">--</div>
+          <div class="sess-lbl">Session 1</div>
+        </div>
+        <div class="arrow-col">
+          <div class="arrow-line">→</div>
+          <div class="delta-badge" id="cmp-delta">--</div>
+        </div>
+        <div class="sess-score">
+          <div class="sess-num" id="cmp-score2">--</div>
+          <div class="sess-lbl">Session 2</div>
+        </div>
+      </div>
+      <div class="verdict" id="cmp-verdict"></div>
+      <table class="phase-table" style="margin-top:12px">
+        <thead><tr>
+          <th>Phase</th><th>Before</th><th>After</th><th>Change</th>
+        </tr></thead>
+        <tbody id="cmp-phase-rows"></tbody>
+      </table>
+    </div>
+
+    <div class="issue-section" id="cmp-fixed-section">
+      <div class="issue-sec-title">✅ Issues You Fixed</div>
+      <div id="cmp-fixed-list"></div>
+    </div>
+
+    <div class="issue-section" id="cmp-remain-section">
+      <div class="issue-sec-title">⚠️ Still Working On</div>
+      <div id="cmp-remain-list"></div>
+    </div>
+
+    <div class="coaching-card">
+      <div class="coaching-lbl">🤖 Coach Progress Notes</div>
+      <div class="coaching-text" id="cmp-coaching"></div>
+    </div>
+
+    <div class="try-again">
+      <button class="btn btn-secondary" onclick="resetAll()">↩ Start Fresh</button>
     </div>
   </div>
 
@@ -325,6 +423,9 @@ let recordedChunks = [];
 let extractedFrames = [];
 let recordTimer = null;
 let recSeconds = 0;
+let firstAnalysisData = null;      // saved after session 1
+let firstExtractedFrames = [];     // frames from session 1
+let isFollowUp = false;            // true when recording 2nd swing
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -571,7 +672,11 @@ async function analyzeSwing() {
     }
     const data = await res.json();
     hideLoading();
-    showResults(data);
+    if (isFollowUp && firstAnalysisData) {
+      showComparison(firstAnalysisData, data);
+    } else {
+      showResults(data);
+    }
   } catch (err) {
     hideLoading();
     showError(err.message || 'Analysis failed. Please try again.');
@@ -633,11 +738,121 @@ function showResults(data) {
   });
 
   $('coaching-text').textContent = data.coaching || 'Keep practicing — consistency is key!';
+
+  // Store for potential follow-up comparison
+  firstAnalysisData = data;
+  firstExtractedFrames = [...extractedFrames];
+
+  // Show follow-up CTA
+  showEl('followup-cta');
+
   showEl('result-section');
   setTimeout(() => $('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 }
 
 const phaseIcons = { 'Stance': '🦵', 'Backswing': '↩️', 'Contact Point': '🎾', 'Follow-Through': '↪️' };
+
+// ─── Follow-up ────────────────────────────────────────────────────────────────
+function startFollowUp() {
+  isFollowUp = true;
+  // Hide results but keep first data saved
+  hideEl('result-section');
+  hideEl('comparison-section');
+  hideEl('error-msg');
+  showEl('input-section');
+  videoBlob = null; extractedFrames = [];
+  $('video-preview').src = '';
+  $('file-input').value = '';
+}
+
+// ─── Show comparison ──────────────────────────────────────────────────────────
+function showComparison(d1, d2) {
+  const s1 = d1.overall_score ?? d1.score ?? 0;
+  const s2 = d2.overall_score ?? d2.score ?? 0;
+  const diff = s2 - s1;
+
+  $('cmp-score1').textContent = s1;
+  $('cmp-score2').textContent = s2;
+
+  const deltaBadge = $('cmp-delta');
+  if (diff > 0) {
+    deltaBadge.textContent = `▲ +${diff}`;
+    deltaBadge.className = 'delta-badge delta-up';
+    $('cmp-verdict').textContent = diff >= 10 ? '🔥 Big improvement! Keep it up!' : '✅ You improved!';
+  } else if (diff < 0) {
+    deltaBadge.textContent = `▼ ${diff}`;
+    deltaBadge.className = 'delta-badge delta-down';
+    $('cmp-verdict').textContent = 'Keep practicing — it takes time to build muscle memory.';
+  } else {
+    deltaBadge.textContent = `= ${s2}`;
+    deltaBadge.className = 'delta-badge delta-same';
+    $('cmp-verdict').textContent = 'Consistent score — focus on the tips below.';
+  }
+
+  // Phase table
+  const phaseOrder = ['Stance','Backswing','Contact Point','Follow-Through'];
+  const tbody = $('cmp-phase-rows');
+  tbody.innerHTML = '';
+  phaseOrder.forEach(name => {
+    const p1 = (d1.phases || []).find(p => p.name === name) || {};
+    const p2 = (d2.phases || []).find(p => p.name === name) || {};
+    const ps1 = p1.score || 0, ps2 = p2.score || 0, pd = ps2 - ps1;
+    const cls = pd > 0 ? 'td-delta-up' : pd < 0 ? 'td-delta-down' : 'td-delta-same';
+    const icon = pd > 0 ? '▲' : pd < 0 ? '▼' : '=';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${phaseIcons[name] || ''} ${name}</td>
+      <td>${ps1}</td>
+      <td>${ps2}</td>
+      <td class="${cls}">${icon}${pd > 0 ? '+' : ''}${pd}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Collect all issues from both sessions
+  const allIssues1 = (d1.phases || []).flatMap(p => p.issues || []);
+  const allIssues2 = (d2.phases || []).flatMap(p => p.issues || []);
+
+  const fixed    = allIssues1.filter(i => !allIssues2.some(j => issuesSimilar(i, j)));
+  const remaining = allIssues2.filter(i => allIssues1.some(j => issuesSimilar(i, j)));
+  const newIssues = allIssues2.filter(i => !allIssues1.some(j => issuesSimilar(i, j)));
+
+  // Fixed issues
+  const fixedList = $('cmp-fixed-list');
+  fixedList.innerHTML = fixed.length
+    ? fixed.map(i => `<div class="fixed-item"><span>✓</span><span>${i}</span></div>`).join('')
+    : `<div class="issue-none">No issues clearly resolved yet — keep practicing!</div>`;
+
+  // Remaining + new issues
+  const remainList = $('cmp-remain-list');
+  const combinedRemain = [...remaining, ...newIssues.map(i => `${i} ★ new`)];
+  remainList.innerHTML = combinedRemain.length
+    ? remaining.map(i => `<div class="remain-item"><span>○</span><span>${i}</span></div>`).join('') +
+      newIssues.map(i => `<div class="new-item"><span>!</span><span>${i}</span></div>`).join('')
+    : `<div class="issue-none">No recurring issues detected — great consistency!</div>`;
+
+  // Coaching summary
+  const coachingParts = [];
+  if (diff > 0) coachingParts.push(`Your overall score improved by ${diff} points — great progress.`);
+  else if (diff < 0) coachingParts.push(`Your score dipped by ${Math.abs(diff)} points — that's normal, keep going.`);
+  else coachingParts.push(`Your score stayed consistent at ${s2}.`);
+  if (fixed.length) coachingParts.push(`You fixed ${fixed.length} issue${fixed.length > 1 ? 's' : ''} from last session — excellent.`);
+  if (remaining.length) coachingParts.push(`Focus next on: ${remaining[0]}.`);
+  if (d2.coaching) coachingParts.push(d2.coaching);
+  $('cmp-coaching').textContent = coachingParts.join(' ');
+
+  // Reset follow-up state and show comparison
+  isFollowUp = false;
+  hideEl('result-section');
+  showEl('comparison-section');
+  setTimeout(() => $('comparison-section').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+function issuesSimilar(a, b) {
+  const words = s => s.toLowerCase().split(/\W+/).filter(w => w.length > 3);
+  const wb = new Set(words(b));
+  return words(a).some(w => wb.has(w));
+}
 
 // ─── UI helpers ───────────────────────────────────────────────────────────────
 function showLoading() { showEl('loading'); }
@@ -648,11 +863,15 @@ function hideError()    { hideEl('error-msg'); }
 
 function resetAll() {
   videoBlob = null; extractedFrames = [];
+  firstAnalysisData = null; firstExtractedFrames = [];
+  isFollowUp = false;
   $('video-preview').src = '';
   $('file-input').value = '';
   hideEl('preview-section');
   hideEl('loading');
   hideEl('result-section');
+  hideEl('comparison-section');
+  hideEl('followup-cta');
   hideEl('error-msg');
   showEl('input-section');
   stopStream();
